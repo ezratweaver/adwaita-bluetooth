@@ -17,6 +17,7 @@
           pkgs.gtk4
           pkgs.libadwaita
           pkgs.gnome-themes-extra
+          pkgs.gnome-builder
 
           (pkgs.python313.withPackages (
             ps: with ps; [
