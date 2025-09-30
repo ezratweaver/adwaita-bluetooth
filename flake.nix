@@ -13,9 +13,14 @@
       devShells.${system}.default = pkgs.mkShell {
         buildInputs = [
           pkgs.git
+          pkgs.gobject-introspection
+          pkgs.gtk4
+          pkgs.libadwaita
+
           (pkgs.python313.withPackages (
             ps: with ps; [
               pygobject3
+              pygobject-stubs
             ]
           ))
         ];
