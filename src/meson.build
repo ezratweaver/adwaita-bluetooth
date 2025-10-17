@@ -46,5 +46,5 @@ app_launcher = configure_file(
 run_target(
   'devel',
   command: [gjs_console, '-m', app_launcher],
-  depends: [src_res, data_res, compile_local_schemas]
+  depends: [src_res, data_res]
 )

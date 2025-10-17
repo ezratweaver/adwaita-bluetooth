@@ -16,7 +16,6 @@ tsc = find_program('tsc', required: true)
 
 subdir('data')
 subdir('src')
-subdir('po')
 
 gnome.post_install(
      glib_compile_schemas: true,

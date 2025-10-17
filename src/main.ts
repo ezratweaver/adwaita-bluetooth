@@ -1,9 +1,9 @@
-import Adw from 'gi://Adw';
-import Gio from 'gi://Gio';
-import GObject from 'gi://GObject';
-import Gtk from 'gi://Gtk?version=4.0';
+import Adw from "gi://Adw";
+import Gio from "gi://Gio";
+import GObject from "gi://GObject";
+import Gtk from "gi://Gtk?version=4.0";
 
-import { Window } from './window.js';
+import { Window } from "./window.js";
 
 /**
  * This class is the foundation of most complex applications.
@@ -38,7 +38,7 @@ export class Application extends Adw.Application {
 
     constructor() {
         super({
-            application_id: 'com.eweaver.adw_bluetooth',
+            application_id: "com.eweaver.adw_bluetooth",
             flags: Gio.ApplicationFlags.DEFAULT_FLAGS,
         });
 
@@ -61,23 +61,23 @@ export class Application extends Adw.Application {
          * action group we used as a prefix. Actions directly added to applications
          * are prefixed with `app`.
          */
-        const quit_action = new Gio.SimpleAction({ name: 'quit' });
-        quit_action.connect('activate', () => {
+        const quit_action = new Gio.SimpleAction({ name: "quit" });
+        quit_action.connect("activate", () => {
             this.quit();
         });
 
         this.add_action(quit_action);
-        this.set_accels_for_action('app.quit', ['<Control>q']);
+        this.set_accels_for_action("app.quit", ["<Control>q"]);
 
-        const show_about_action = new Gio.SimpleAction({ name: 'about' });
-        show_about_action.connect('activate', () => {
+        const show_about_action = new Gio.SimpleAction({ name: "about" });
+        show_about_action.connect("activate", () => {
             const aboutDialog = new Adw.AboutDialog({
-                application_name: _('Bluetooth'),
-                application_icon: 'com.eweaver.adw_bluetooth',
-                developer_name: 'Ezra',
-                version: '0.1',
-                developers: ['Ezra <ezratweaver@gmail.com>'],
-                copyright: '© 2023 Ezra',
+                application_name: _("Bluetooth"),
+                application_icon: "com.eweaver.adw_bluetooth",
+                developer_name: "Ezra",
+                version: "0.1",
+                developers: ["Ezra <ezratweaver@gmail.com>"],
+                copyright: "© 2023 Ezra",
             });
 
             aboutDialog.present(this.active_window);
@@ -85,7 +85,7 @@ export class Application extends Adw.Application {
 
         this.add_action(show_about_action);
 
-        Gio._promisify(Gtk.UriLauncher.prototype, 'launch', 'launch_finish');
+        Gio._promisify(Gtk.UriLauncher.prototype, "launch", "launch_finish");
     }
 
     // When overriding virtual functions, the function name must be `vfunc_$funcname`.
@@ -100,7 +100,6 @@ export class Application extends Adw.Application {
 
 export function main(argv: string[]): Promise<number> {
     const app = new Application();
-    // @ts-expect-error gi.ts can't generate this, but it exists.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
     return app.runAsync(argv);
 }

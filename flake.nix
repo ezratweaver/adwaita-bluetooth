@@ -23,6 +23,10 @@
           pkgs.ninja
           pkgs.python313
           pkgs.gnome-builder
+          pkgs.gjs
+          pkgs.blueprint-compiler
+          pkgs.typescript
+          pkgs.desktop-file-utils
         ];
 
         env = {
