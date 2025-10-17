@@ -17,7 +17,9 @@ class AdwBluetooth(Adw.Application):
 
 class MainWindow(Adw.ApplicationWindow):
     def __init__(self, app):
-        super().__init__(application=app, title="Bluetooth")
+        super().__init__(
+            application=app, title="Bluetooth", default_height=510, default_width=550
+        )
 
         # Libadwaita layout pattern
         view = Adw.ToolbarView()
