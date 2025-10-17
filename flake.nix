@@ -13,19 +13,28 @@
       devShells.${system}.default = pkgs.mkShell {
         buildInputs = [
           pkgs.git
+          pkgs.pkg-config
           pkgs.gobject-introspection
           pkgs.gtk4
           pkgs.libadwaita
           pkgs.gnome-themes-extra
-          pkgs.gnome-builder
-
+          pkgs.uv
           (pkgs.python313.withPackages (
             ps: with ps; [
               pygobject3
               pygobject-stubs
             ]
           ))
+
         ];
+
+        env = {
+          UV_PYTHON_PREFERENCE = "only-system";
+        };
+
+        shellHook = ''
+          export UV_PYTHON=$(which python)
+        '';
       };
     };
 }
