@@ -3,12 +3,12 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
-from gi.repository import Gtk, Adw, Gio
+from gi.repository import Adw
 
 
 class AdwBluetooth(Adw.Application):
     def __init__(self):
-        super().__init__(application_id="com.eweaver.adw-bluetooth")
+        super().__init__(application_id="com.eweaver.adwbluetooth")
 
     def do_activate(self, *args):
         win = MainWindow(self)
