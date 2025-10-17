@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="adw-bluetooth">
+	<schema id="com.eweaver.adw_bluetooth" path="/com/eweaver/adw_bluetooth/">
+	</schema>
+</schemalist>

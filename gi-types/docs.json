@@ -1,0 +1,11 @@
+{
+    "options": {
+        "inferGenerics": true,
+        "promisify": true,
+        "versionedImports": true,
+        "versionedOutput": true,
+        "gjsModules": true,
+        "all": true,
+        "out": "./"
+    }
+}

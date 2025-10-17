@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "strict": true,
+        "paths": {
+            "*": [
+                "*",
+            ]
+        },
+        "target": "ES2018",
+        "baseUrl": ".",
+        "moduleResolution": "node",
+        "module": "ES2020",
+        "outDir": "_build",
+        "lib": [
+            "es2017"
+        ],
+        "typeRoots": []
+    },
+    "include": [
+        "*"
+    ],
+    "exclude": [
+        "node_modules/@types/**"
+    ]
+}
