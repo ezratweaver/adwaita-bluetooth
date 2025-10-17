@@ -21,6 +21,3 @@ data_res = gnome.compile_resources(
   install: true,
   install_dir: pkgdatadir,
 )
-
-# Install icons if present
-subdir('icons')
