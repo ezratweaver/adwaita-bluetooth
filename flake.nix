@@ -21,14 +21,7 @@
           pkgs.uv
           pkgs.meson
           pkgs.ninja
-
-          (pkgs.python313.withPackages (
-            ps: with ps; [
-              pygobject3
-              pygobject-stubs
-            ]
-          ))
-
+          pkgs.python313
         ];
 
         env = {
