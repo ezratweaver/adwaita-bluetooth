@@ -19,6 +19,9 @@
           pkgs.libadwaita
           pkgs.gnome-themes-extra
           pkgs.uv
+          pkgs.meson
+          pkgs.ninja
+
           (pkgs.python313.withPackages (
             ps: with ps; [
               pygobject3
