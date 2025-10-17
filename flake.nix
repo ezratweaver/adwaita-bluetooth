@@ -22,6 +22,7 @@
           pkgs.meson
           pkgs.ninja
           pkgs.python313
+          pkgs.gnome-builder
         ];
 
         env = {

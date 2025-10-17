@@ -1,6 +1,0 @@
-data/com.eweaver.adw_bluetooth.desktop.in
-data/com.eweaver.adw_bluetooth.appdata.xml.in
-data/com.eweaver.adw_bluetooth.gschema.xml
-data/window.ui
-src/main.ts
-src/window.ts
