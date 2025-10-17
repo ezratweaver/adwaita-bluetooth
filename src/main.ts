@@ -74,10 +74,9 @@ export class Application extends Adw.Application {
             const aboutDialog = new Adw.AboutDialog({
                 application_name: _("Bluetooth"),
                 application_icon: "com.eweaver.adw_bluetooth",
-                developer_name: "Ezra",
-                version: "0.1",
+                developer_name: "Ezra Weaver",
+                version: "0.0.1",
                 developers: ["Ezra <ezratweaver@gmail.com>"],
-                copyright: "© 2023 Ezra",
             });
 
             aboutDialog.present(this.active_window);
