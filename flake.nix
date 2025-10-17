@@ -18,24 +18,16 @@
           pkgs.gtk4
           pkgs.libadwaita
           pkgs.gnome-themes-extra
-          pkgs.uv
           pkgs.meson
           pkgs.ninja
-          pkgs.python313
           pkgs.gnome-builder
           pkgs.gjs
           pkgs.blueprint-compiler
           pkgs.typescript
           pkgs.desktop-file-utils
+          pkgs.librsvg
         ];
 
-        env = {
-          UV_PYTHON_PREFERENCE = "only-system";
-        };
-
-        shellHook = ''
-          export UV_PYTHON=$(which python)
-        '';
       };
     };
 }
