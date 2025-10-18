@@ -11,27 +11,36 @@ template $Gjs_Window: Adw.ApplicationWindow {
     child: Adw.ToolbarView {
       [top]
       Adw.HeaderBar {
-        show-title: false;
+        [end]
+        Switch {
+          name: "bluetooth-toggle";
+        }
       }
 
       content: Box {
         orientation: vertical;
-        halign: center;
         valign: center;
-        spacing: 6;
 
-        Image {
-          icon-name: "bluetooth-disabled-symbolic";
-          pixel-size: 58;
-          margin-bottom: 12;
-        }
+        Box {
+          name: "bluetooth-disabled";
+          orientation: vertical;
+          halign: center;
+          valign: center;
+          spacing: 6;
 
-        Label {
-          label: _("Bluetooth is disabled");
-        }
+          Image {
+            icon-name: "bluetooth-disabled-symbolic";
+            pixel-size: 58;
+            margin-bottom: 12;
+          }
 
-        Label {
-          label: _("Turn on bluetooth to connect devices.");
+          Label {
+            label: _("Bluetooth Turned Off");
+          }
+
+          Label {
+            label: _("Turn on to connect devices.");
+          }
         }
       };
     };

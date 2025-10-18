@@ -31,7 +31,7 @@ export class Application extends Adw.Application {
 
     public vfunc_activate(): void {
         if (!this.window) {
-            this.window = new Window({ application: this });
+            this.window = new Window({ application: this, title: "Bluetooth" });
         }
 
         this.window.present();
