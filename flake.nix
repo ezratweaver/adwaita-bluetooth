@@ -20,12 +20,14 @@
           pkgs.gnome-themes-extra
           pkgs.meson
           pkgs.ninja
-          pkgs.gnome-builder
           pkgs.gjs
-          pkgs.blueprint-compiler
           pkgs.typescript
           pkgs.desktop-file-utils
           pkgs.librsvg
+
+          # Dev tools
+          pkgs.gnome-builder
+          pkgs.blueprint-compiler
         ];
 
       };
