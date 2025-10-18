@@ -26,20 +26,6 @@ export class Application extends Adw.Application {
         this.add_action(quit_action);
         this.set_accels_for_action("app.quit", ["<Control>q"]);
 
-        const show_about_action = new Gio.SimpleAction({ name: "about" });
-        show_about_action.connect("activate", () => {
-            const aboutDialog = new Adw.AboutDialog({
-                application_name: _("AdwBluetooth"),
-                application_icon: "bluetooth",
-                developer_name: "Ezra Weaver",
-                version: "0.0.1",
-            });
-
-            aboutDialog.present(this.active_window);
-        });
-
-        this.add_action(show_about_action);
-
         Gio._promisify(Gtk.UriLauncher.prototype, "launch", "launch_finish");
     }
 
