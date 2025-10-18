@@ -4,6 +4,7 @@ import GObject from "gi://GObject";
 import Gtk from "gi://Gtk?version=4.0";
 
 import { Window } from "./window.js";
+import Gdk from "gi://Gdk?version=4.0";
 
 export class Application extends Adw.Application {
     private window?: Window;
@@ -18,6 +19,7 @@ export class Application extends Adw.Application {
             flags: Gio.ApplicationFlags.DEFAULT_FLAGS,
         });
 
+        // Enable Ctrl + Q to quit application
         const quit_action = new Gio.SimpleAction({ name: "quit" });
         quit_action.connect("activate", () => {
             this.quit();
@@ -25,6 +27,18 @@ export class Application extends Adw.Application {
 
         this.add_action(quit_action);
         this.set_accels_for_action("app.quit", ["<Control>q"]);
+
+        // CSS
+        const provider = new Gtk.CssProvider();
+        provider.load_from_file(Gio.File.new_for_path("style.css"));
+
+        const display = Gdk.Display.get_default();
+        if (display)
+            Gtk.StyleContext.add_provider_for_display(
+                display,
+                provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
+            );
 
         Gio._promisify(Gtk.UriLauncher.prototype, "launch", "launch_finish");
     }
