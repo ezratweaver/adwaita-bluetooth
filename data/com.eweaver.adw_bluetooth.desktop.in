@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=adw-bluetooth
 Exec=com.eweaver.adw_bluetooth
-Icon=com.eweaver.adw_bluetooth
+Icon=bluetooth
 Terminal=false
 Type=Application
 Categories=GTK;

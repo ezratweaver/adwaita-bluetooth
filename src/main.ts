@@ -72,11 +72,10 @@ export class Application extends Adw.Application {
         const show_about_action = new Gio.SimpleAction({ name: "about" });
         show_about_action.connect("activate", () => {
             const aboutDialog = new Adw.AboutDialog({
-                application_name: _("Bluetooth"),
-                application_icon: "com.eweaver.adw_bluetooth",
+                application_name: _("AdwBluetooth"),
+                application_icon: "bluetooth",
                 developer_name: "Ezra Weaver",
                 version: "0.0.1",
-                developers: ["Ezra <ezratweaver@gmail.com>"],
             });
 
             aboutDialog.present(this.active_window);

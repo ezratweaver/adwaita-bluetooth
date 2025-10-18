@@ -24,8 +24,8 @@
             </child>
             <child>
               <object class="AdwStatusPage" id="statusPage">
-                <property name="icon-name">com.eweaver.adw_bluetooth-symbolic</property>
-                <property name="title" translatable="yes">Welcome to Bluetooth</property>
+                <property name="icon-name">bluetooth-symbolic</property>
+                <property name="title" translatable="yes">battery-full-symbolic</property>
                 <property name="description" translatable="yes">Use this template to build your GNOME + Typescript application</property>
                 <child>
                   <object class="GtkBox">
