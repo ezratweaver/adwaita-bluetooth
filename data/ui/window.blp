@@ -12,9 +12,7 @@ template $Gjs_Window: Adw.ApplicationWindow {
       [top]
       Adw.HeaderBar {
         [end]
-        Switch {
-          name: "bluetooth-toggle";
-        }
+        Switch bluetooth-toggle {}
       }
 
       content: Box {
@@ -22,7 +20,6 @@ template $Gjs_Window: Adw.ApplicationWindow {
         valign: center;
 
         Box {
-          name: "bluetooth-disabled";
           orientation: vertical;
           halign: center;
           valign: center;

@@ -3,6 +3,7 @@ gnome = import('gnome')
 sources = files(
   'main.ts',
   'window.ts',
+  'bluetooth.ts'
 )
 
 tsc_out = meson.project_build_root() / 'tsc-out'

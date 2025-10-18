@@ -1,13 +1,16 @@
 import Adw from "gi://Adw";
 import GObject from "gi://GObject";
 import Gtk from "gi://Gtk?version=4.0";
+import { getDefaultAdapter, isAdapterPowered } from "./bluetooth.js";
 
 export class Window extends Adw.ApplicationWindow {
+    private _bluetooth_toggle!: Gtk.Switch;
+
     static {
         GObject.registerClass(
             {
                 Template: "resource:///com/eweaver/adw_bluetooth/ui/window.ui",
-                InternalChildren: ["toastOverlay"],
+                InternalChildren: ["toastOverlay", "bluetooth-toggle"],
             },
             this,
         );
@@ -22,6 +25,17 @@ export class Window extends Adw.ApplicationWindow {
 
     constructor(params?: Partial<Adw.ApplicationWindow.ConstructorProps>) {
         super(params);
+
+        const defaultAdapter = getDefaultAdapter();
+        let adapterPowered: boolean = false;
+
+        if (defaultAdapter) {
+            adapterPowered = isAdapterPowered(defaultAdapter);
+        } else {
+            // Implement logic to display to the user, that no adapters were found
+        }
+
+        this._bluetooth_toggle.set_active(adapterPowered);
 
         this.set_deletable(false); // Disable X button on the top right, since we are targeting Hyprland / Tiling WMs
     }

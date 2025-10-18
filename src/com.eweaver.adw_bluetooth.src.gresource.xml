@@ -3,5 +3,6 @@
   <gresource prefix="/com/eweaver/adw_bluetooth/js">
     <file>main.js</file>
     <file>window.js</file>
+    <file>bluetooth.js</file>
   </gresource>
 </gresources>
