@@ -6,9 +6,14 @@ const DBUS_OM_IFACE = "org.freedesktop.DBus.ObjectManager";
 const DBUS_PROP_IFACE = "org.freedesktop.DBus.Properties";
 const ADAPTER_IFACE = "org.bluez.Adapter1";
 
+interface ErrorPopUp {
+    title: string;
+    description: string;
+}
+
 export interface BluetoothCallbacks {
     onPowerChanged: (powered: boolean) => void;
-    onError: (error: string) => void;
+    onError: (error: ErrorPopUp) => void;
 }
 
 export class BluetoothManager {
@@ -29,14 +34,21 @@ export class BluetoothManager {
         try {
             this.adapterPath = this.getDefaultAdapter();
             if (!this.adapterPath) {
-                this.callbacks.onError("No Bluetooth adapter found");
+                this.callbacks.onError({
+                    title: "No Bluetooth adapter found",
+                    description:
+                        "Could not find bluetooth adapter to connect to, please ensure bluetooth is properly configured.",
+                });
                 return;
             }
 
             this.setupPropsProxy();
             this.updatePowerState();
         } catch (e) {
-            this.callbacks.onError(e instanceof Error ? e.message : String(e));
+            this.callbacks.onError({
+                title: "Unknown Error",
+                description: e instanceof Error ? e.message : String(e),
+            });
         }
     }
 
@@ -121,7 +133,11 @@ export class BluetoothManager {
 
     public setPower(powered: boolean): void {
         if (!this.propsProxy) {
-            this.callbacks.onError("No Bluetooth adapter available");
+            this.callbacks.onError({
+                title: "No Bluetooth adapter found",
+                description:
+                    "Could not find bluetooth adapter to connect to, please ensure bluetooth is properly configured.",
+            });
             return;
         }
 
@@ -138,7 +154,10 @@ export class BluetoothManager {
                 null,
             );
         } catch (e) {
-            this.callbacks.onError(e instanceof Error ? e.message : String(e));
+            this.callbacks.onError({
+                title: "Unknown Error",
+                description: e instanceof Error ? e.message : String(e),
+            });
         }
     }
 
