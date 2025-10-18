@@ -30,7 +30,9 @@ export class Application extends Adw.Application {
 
         // CSS
         const provider = new Gtk.CssProvider();
-        provider.load_from_file(Gio.File.new_for_path("style.css"));
+        provider.load_from_resource(
+            "resource:///com/eweaver/adw_bluetooth/styles/style.css",
+        );
 
         const display = Gdk.Display.get_default();
         if (display)

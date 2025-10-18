@@ -6,7 +6,7 @@ export class Window extends Adw.ApplicationWindow {
     static {
         GObject.registerClass(
             {
-                Template: "resource:///com/eweaver/adw_bluetooth/window.ui",
+                Template: "resource:///com/eweaver/adw_bluetooth/ui/window.ui",
                 InternalChildren: ["toastOverlay"],
             },
             this,
