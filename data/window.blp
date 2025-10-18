@@ -30,8 +30,12 @@ template $Gjs_Window: Adw.ApplicationWindow {
 
           Image {
             icon-name: "bluetooth-disabled-symbolic";
-            pixel-size: 58;
-            margin-bottom: 12;
+            pixel-size: 100;
+            margin-bottom: 30;
+
+            css-classes: [
+              'bluetooth-icon',
+            ];
           }
 
           Label {

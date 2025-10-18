@@ -1,4 +1,8 @@
 .disabled-header {
-  color: red;
+  font-size: 20px;
+  font-weight: 600;
 }
 
+.bluetooth-icon {
+  color: grey;
+}
