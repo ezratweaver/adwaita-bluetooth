@@ -1,0 +1,27 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $Gjs_Window: Adw.ApplicationWindow {
+  default-width: 800;
+  default-height: 600;
+  width-request: 360;
+  height-request: 294;
+
+  content: Adw.ToastOverlay toastOverlay {
+    child: Adw.ToolbarView {
+      [top]
+      Adw.HeaderBar {
+        show-title: false;
+      }
+
+      Adw.StatusPage statusPage {
+        icon-name: "bluetooth-symbolic";
+        title: _("Bluetooth Disabled");
+      }
+    };
+  };
+}
+
+SizeGroup {
+  mode: horizontal;
+}

@@ -13,6 +13,14 @@ if compile_schemas.found()
   )
 endif
 
+blueprints = custom_target('blueprints',
+  input: files(
+    'window.blp',
+  ),
+  output: '.',
+  command: [find_program('blueprint-compiler'), 'batch-compile', '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
+)
+
 # Compile GResources (UI, icons, etc.)
 data_res = gnome.compile_resources(
   'com.eweaver.adw_bluetooth.data',
@@ -20,4 +28,5 @@ data_res = gnome.compile_resources(
   gresource_bundle: true,
   install: true,
   install_dir: pkgdatadir,
+  dependencies: blueprints,
 )
