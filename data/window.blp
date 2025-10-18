@@ -14,10 +14,26 @@ template $Gjs_Window: Adw.ApplicationWindow {
         show-title: false;
       }
 
-      Adw.StatusPage statusPage {
-        icon-name: "bluetooth-symbolic";
-        title: _("Bluetooth Disabled");
-      }
+      content: Box {
+        orientation: vertical;
+        halign: center;
+        valign: center;
+        spacing: 6;
+
+        Image {
+          icon-name: "bluetooth-disabled-symbolic";
+          pixel-size: 58;
+          margin-bottom: 12;
+        }
+
+        Label {
+          label: _("Bluetooth is disabled");
+        }
+
+        Label {
+          label: _("Turn on bluetooth to connect devices.");
+        }
+      };
     };
   };
 }

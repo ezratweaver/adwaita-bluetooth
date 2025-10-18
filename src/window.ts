@@ -27,6 +27,8 @@ export class Window extends Adw.ApplicationWindow {
     constructor(params?: Partial<Adw.ApplicationWindow.ConstructorProps>) {
         super(params);
 
+        this.set_deletable(false); // Disable X button on the top right, since we are targeting Hyprland / Tiling WMs
+
         const openLink = new Gio.SimpleAction({
             name: "open-link",
             parameter_type: GLib.VariantType.new("s"),
