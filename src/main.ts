@@ -28,7 +28,14 @@ export class Application extends Adw.Application {
         this.add_action(quit_action);
         this.set_accels_for_action("app.quit", ["<Control>q"]);
 
-        // CSS
+        Gio._promisify(Gtk.UriLauncher.prototype, "launch", "launch_finish");
+    }
+
+    public vfunc_activate(): void {
+        if (!this.window) {
+            this.window = new Window({ application: this, title: "Bluetooth" });
+        }
+
         const provider = new Gtk.CssProvider();
         provider.load_from_resource(
             "/com/eweaver/adw_bluetooth/styles/style.css",
@@ -41,14 +48,6 @@ export class Application extends Adw.Application {
                 provider,
                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
             );
-
-        Gio._promisify(Gtk.UriLauncher.prototype, "launch", "launch_finish");
-    }
-
-    public vfunc_activate(): void {
-        if (!this.window) {
-            this.window = new Window({ application: this, title: "Bluetooth" });
-        }
 
         this.window.present();
     }
