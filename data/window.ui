@@ -27,10 +27,5 @@
   </template>
   <object class="GtkSizeGroup">
     <property name="mode">horizontal</property>
-    <widgets>
-      <widget name="dev_btn"/>
-      <widget name="hig_btn"/>
-      <widget name="gjs_btn"/>
-    </widgets>
   </object>
 </interface>
