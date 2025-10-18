@@ -1,85 +1,153 @@
 import Gio from "gi://Gio";
-import GLib from "gi://GLib?version=2.0";
+import GLib from "gi://GLib";
 
 const BLUEZ_SERVICE = "org.bluez";
 const DBUS_OM_IFACE = "org.freedesktop.DBus.ObjectManager";
 const DBUS_PROP_IFACE = "org.freedesktop.DBus.Properties";
 const ADAPTER_IFACE = "org.bluez.Adapter1";
 
-const systemBus = Gio.bus_get_sync(Gio.BusType.SYSTEM, null);
+export interface BluetoothCallbacks {
+    onPowerChanged: (powered: boolean) => void;
+    onError: (error: string) => void;
+}
 
-/*
- * TODO: Implement support for changing adapters
- */
+export class BluetoothManager {
+    private callbacks: BluetoothCallbacks;
+    private systemBus: Gio.DBusConnection;
+    private adapterPath: string | null = null;
+    private propsProxy: Gio.DBusProxy | null = null;
+    private adapterPowered: boolean = false;
 
-/**
- * Return the first available Bluetooth adapter path.
- */
-export function getDefaultAdapter(): string | null {
-    const objManager = new Gio.DBusProxy({
-        g_connection: systemBus,
-        g_name: BLUEZ_SERVICE,
-        g_object_path: "/",
-        g_interface_name: DBUS_OM_IFACE,
-    });
+    constructor(callbacks: BluetoothCallbacks) {
+        this.callbacks = callbacks;
+        this.systemBus = Gio.bus_get_sync(Gio.BusType.SYSTEM, null);
 
-    const [managedObjects] = objManager
-        .call_sync("GetManagedObjects", null, Gio.DBusCallFlags.NONE, -1, null)
-        .deep_unpack() as any;
+        this.initialize();
+    }
 
-    for (const [path, interfaces] of Object.entries(managedObjects)) {
-        if (ADAPTER_IFACE in (interfaces as any)) {
-            return path;
+    private initialize(): void {
+        try {
+            this.adapterPath = this.getDefaultAdapter();
+            if (!this.adapterPath) {
+                this.callbacks.onError("No Bluetooth adapter found");
+                return;
+            }
+
+            this.setupPropsProxy();
+            this.updatePowerState();
+        } catch (e) {
+            this.callbacks.onError(e instanceof Error ? e.message : String(e));
         }
     }
 
-    return null;
-}
+    private setupPropsProxy(): void {
+        if (!this.adapterPath) return;
 
-/**
- * Check whether the given adapter is powered on.
- */
-export function isAdapterPowered(adapterPath: string): boolean {
-    const propsProxy = new Gio.DBusProxy({
-        g_connection: systemBus,
-        g_name: BLUEZ_SERVICE,
-        g_object_path: adapterPath,
-        g_interface_name: DBUS_PROP_IFACE,
-    });
+        this.propsProxy = Gio.DBusProxy.new_sync(
+            this.systemBus,
+            Gio.DBusProxyFlags.NONE,
+            null,
+            BLUEZ_SERVICE,
+            this.adapterPath,
+            DBUS_PROP_IFACE,
+            null,
+        );
 
-    const [value]: [GLib.Variant] = propsProxy
-        .call_sync(
+        this.propsProxy.connect(
+            "g-properties-changed",
+            (_: Gio.DBusProxy, changed: GLib.Variant) => {
+                const poweredVariant = changed.lookup_value("Powered", null);
+                if (poweredVariant) {
+                    const powered = poweredVariant.get_boolean();
+                    this.setPowered(powered);
+                }
+            },
+        );
+    }
+
+    private getDefaultAdapter(): string | null {
+        const objManager = Gio.DBusProxy.new_sync(
+            this.systemBus,
+            Gio.DBusProxyFlags.NONE,
+            null,
+            BLUEZ_SERVICE,
+            "/",
+            DBUS_OM_IFACE,
+            null,
+        );
+
+        const result = objManager.call_sync(
+            "GetManagedObjects",
+            null,
+            Gio.DBusCallFlags.NONE,
+            -1,
+            null,
+        );
+
+        const [managedObjects] = result.deep_unpack() as [
+            Record<string, Record<string, any>>,
+        ];
+
+        for (const [path, interfaces] of Object.entries(managedObjects)) {
+            if (ADAPTER_IFACE in interfaces) {
+                return path;
+            }
+        }
+
+        return null;
+    }
+
+    private updatePowerState(): void {
+        if (!this.propsProxy) return;
+
+        const result = this.propsProxy.call_sync(
             "Get",
             new GLib.Variant("(ss)", [ADAPTER_IFACE, "Powered"]),
             Gio.DBusCallFlags.NONE,
             -1,
             null,
-        )
-        .deep_unpack();
+        );
 
-    return value.unpack() as boolean;
-}
+        const [value] = result.deep_unpack() as [GLib.Variant];
+        this.setPowered(value.get_boolean());
+    }
 
-/**
- * Set adapter power state (true = on, false = off).
- */
-export function setAdapterPower(adapterPath: string, powered: boolean): void {
-    const propsProxy = new Gio.DBusProxy({
-        g_connection: systemBus,
-        g_name: BLUEZ_SERVICE,
-        g_object_path: adapterPath,
-        g_interface_name: DBUS_PROP_IFACE,
-    });
+    private setPowered(powered: boolean): void {
+        if (this.adapterPowered === powered) return;
 
-    propsProxy.call_sync(
-        "Set",
-        new GLib.Variant("(ssv)", [
-            ADAPTER_IFACE,
-            "Powered",
-            new GLib.Variant("b", powered),
-        ]),
-        Gio.DBusCallFlags.NONE,
-        -1,
-        null,
-    );
+        this.adapterPowered = powered;
+        this.callbacks.onPowerChanged(powered);
+    }
+
+    public setPower(powered: boolean): void {
+        if (!this.propsProxy) {
+            this.callbacks.onError("No Bluetooth adapter available");
+            return;
+        }
+
+        try {
+            this.propsProxy.call_sync(
+                "Set",
+                new GLib.Variant("(ssv)", [
+                    ADAPTER_IFACE,
+                    "Powered",
+                    new GLib.Variant("b", powered),
+                ]),
+                Gio.DBusCallFlags.NONE,
+                -1,
+                null,
+            );
+        } catch (e) {
+            this.callbacks.onError(e instanceof Error ? e.message : String(e));
+        }
+    }
+
+    public get isPowered(): boolean {
+        return this.adapterPowered;
+    }
+
+    public destroy(): void {
+        this.propsProxy = null;
+        this.adapterPath = null;
+    }
 }
