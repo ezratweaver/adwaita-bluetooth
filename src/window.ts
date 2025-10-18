@@ -9,12 +9,17 @@ import {
 
 export class Window extends Adw.ApplicationWindow {
     private _bluetooth_toggle!: Gtk.Switch;
+    private _disabled_state!: Gtk.Box;
 
     static {
         GObject.registerClass(
             {
                 Template: "resource:///com/eweaver/adw_bluetooth/ui/window.ui",
-                InternalChildren: ["toastOverlay", "bluetooth-toggle"],
+                InternalChildren: [
+                    "toastOverlay",
+                    "bluetooth-toggle",
+                    "disabled-state",
+                ],
             },
             this,
         );
@@ -41,11 +46,13 @@ export class Window extends Adw.ApplicationWindow {
         }
 
         this._bluetooth_toggle.set_active(adapterPowered);
+        this._disabled_state.visible = !adapterPowered;
 
         this._bluetooth_toggle.connect("state-set", (switch_, state) => {
             setAdapterPower(defaultAdapter, state);
 
             switch_.set_active(state);
+            this._disabled_state.visible = !state;
         });
 
         this.set_deletable(false); // Disable X button on the top right, since we are targeting Hyprland / Tiling WMs
