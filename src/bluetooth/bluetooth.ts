@@ -1,5 +1,6 @@
 import Gio from "gi://Gio";
 import { Adapter, ADAPTER_INTERFACE } from "./adapter.js";
+import { DEVICE_INTERFACE } from "./device.js";
 
 export const BLUEZ_SERVICE = "org.bluez";
 
@@ -8,6 +9,11 @@ const DBUS_OBJECTMANAGER_INTERFACE = "org.freedesktop.DBus.ObjectManager";
 
 export const DBUS_PROPERTIES_SET = "org.freedesktop.DBus.Properties.Set";
 export const DBUS_PROPERTIES_GET = "org.freedesktop.DBus.Properties.Get";
+
+interface AdapterPathWithDevicePaths {
+    adapterPath: string;
+    devicePaths: string[];
+}
 
 export interface ErrorPopUp {
     title: string;
@@ -41,9 +47,12 @@ export class BluetoothManager {
 
     private _initialize(): void {
         try {
-            const adapterPath = this._getDefaultAdapter();
+            const adapterPaths = this._getAdaptersAndDevices();
 
-            if (!adapterPath) {
+            // TODO: Allow use to pick between adapters
+            const firstAdapter = adapterPaths[0];
+
+            if (!firstAdapter?.adapterPath) {
                 this.callbacks.onError({
                     title: "No Bluetooth adapter found",
                     description:
@@ -54,8 +63,8 @@ export class BluetoothManager {
 
             this.adapter = new Adapter({
                 systemBus: this.systemBus,
-                adapterPath,
-                devicePaths: [],
+                adapterPath: firstAdapter.adapterPath,
+                devicePaths: firstAdapter.devicePaths,
                 onError: this.callbacks.onError,
                 onPowerChanged: this.callbacks.onPowerChanged,
             });
@@ -67,7 +76,7 @@ export class BluetoothManager {
         }
     }
 
-    private _getDefaultAdapter(): string | null {
+    private _getAdaptersAndDevices(): AdapterPathWithDevicePaths[] {
         const bluezObjectsProxy = Gio.DBusProxy.new_sync(
             this.systemBus,
             Gio.DBusProxyFlags.NONE,
@@ -90,13 +99,34 @@ export class BluetoothManager {
             Record<string, Record<string, any>>,
         ];
 
-        for (const [path, interfaces] of Object.entries(managedObjects)) {
+        const pathsAndInterfaces = Object.entries(managedObjects);
+
+        const adapterPaths: string[] = [];
+        for (const [path, interfaces] of pathsAndInterfaces) {
             if (ADAPTER_INTERFACE in interfaces) {
-                return path;
+                adapterPaths.push(path);
             }
         }
 
-        return null;
+        const adaptersAndDevices: AdapterPathWithDevicePaths[] = [];
+        for (const adapterPath of adapterPaths) {
+            const adapterAndDevice: AdapterPathWithDevicePaths = {
+                adapterPath,
+                devicePaths: [],
+            };
+            for (const [path, interfaces] of pathsAndInterfaces) {
+                if (
+                    path.includes(adapterPath) &&
+                    DEVICE_INTERFACE in interfaces
+                ) {
+                    adapterAndDevice.devicePaths.push(path);
+                }
+            }
+            adaptersAndDevices.push(adapterAndDevice);
+        }
+
+        // return adaptersAndDevices;
+        return [];
     }
 
     public setAdapterPower(powered: boolean): boolean {
