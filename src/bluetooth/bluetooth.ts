@@ -1,16 +1,13 @@
 import Gio from "gi://Gio";
-import GLib from "gi://GLib?version=2.0";
+import { Adapter, ADAPTER_INTERFACE } from "./adapter.js";
 
-const BLUEZ_SERVICE = "org.bluez";
+export const BLUEZ_SERVICE = "org.bluez";
 
 // D-Bus system interfaces
 const DBUS_OBJECTMANAGER_INTERFACE = "org.freedesktop.DBus.ObjectManager";
 
-const DBUS_PROPERTIES_SET = "org.freedesktop.DBus.Properties.Set";
-const DBUS_PROPERTIES_GET = "org.freedesktop.DBus.Properties.Get";
-
-// Bluez interfaces
-const ADAPTER_INTERFACE = "org.bluez.Adapter1";
+export const DBUS_PROPERTIES_SET = "org.freedesktop.DBus.Properties.Set";
+export const DBUS_PROPERTIES_GET = "org.freedesktop.DBus.Properties.Get";
 
 export interface ErrorPopUp {
     title: string;
@@ -22,16 +19,18 @@ export interface BluetoothCallbacks {
     onError: (error: ErrorPopUp) => void;
 }
 
+/*
+ * This class serves as a wrapper around the Adapter class, the purpose
+ * for this is to eventually allow switching between adapters, this
+ * calls will manage that switching.
+ *
+ * This class will also manage other system effects on bluetooth, such as rfkill
+ */
 export class BluetoothManager {
     private callbacks: BluetoothCallbacks;
     private systemBus: Gio.DBusConnection;
-    private adapterPath: string | null = null;
 
-    // proxies
-    private adapterProxy: Gio.DBusProxy | null = null;
-
-    // Adapter state
-    private adapterPowered: boolean = false;
+    private adapter: Adapter | null = null;
 
     constructor(callbacks: BluetoothCallbacks) {
         this.callbacks = callbacks;
@@ -40,12 +39,11 @@ export class BluetoothManager {
         this._initialize();
     }
 
-    // TODO: Update to track intial devices aswell
     private _initialize(): void {
         try {
-            this.adapterPath = this._getDefaultAdapter();
+            const adapterPath = this._getDefaultAdapter();
 
-            if (!this.adapterPath) {
+            if (!adapterPath) {
                 this.callbacks.onError({
                     title: "No Bluetooth adapter found",
                     description:
@@ -54,55 +52,19 @@ export class BluetoothManager {
                 return;
             }
 
-            this._setupAdapterProxy();
-
-            // Sync the powered state on the object with Bluez
-            if (!this.adapterProxy) {
-                this.callbacks.onError({
-                    title: "Failed to access adapter",
-                    description: "Could not read bluetooth adapter properties.",
-                });
-                return;
-            }
-
-            const result = this.adapterProxy.call_sync(
-                DBUS_PROPERTIES_GET,
-                new GLib.Variant("(ss)", [ADAPTER_INTERFACE, "Powered"]),
-                Gio.DBusCallFlags.NONE,
-                -1,
-                null,
-            );
-
-            const [value] = result.deep_unpack() as [GLib.Variant];
-            this._setPoweredState(value.get_boolean());
+            this.adapter = new Adapter({
+                systemBus: this.systemBus,
+                adapterPath,
+                devicePaths: [],
+                onError: this.callbacks.onError,
+                onPowerChanged: this.callbacks.onPowerChanged,
+            });
         } catch (e) {
             this.callbacks.onError({
                 title: "Unknown Error",
                 description: e instanceof Error ? e.message : String(e),
             });
         }
-    }
-
-    private _setupAdapterProxy(): void {
-        if (!this.adapterPath) return;
-
-        this.adapterProxy = Gio.DBusProxy.new_sync(
-            this.systemBus,
-            Gio.DBusProxyFlags.NONE,
-            null,
-            BLUEZ_SERVICE,
-            this.adapterPath,
-            ADAPTER_INTERFACE,
-            null,
-        );
-
-        this.adapterProxy.connect("g-properties-changed", (_, changed) => {
-            const poweredValueChanged = changed.lookup_value("Powered", null);
-
-            if (poweredValueChanged) {
-                this._setPoweredState(poweredValueChanged.get_boolean());
-            }
-        });
     }
 
     private _getDefaultAdapter(): string | null {
@@ -137,15 +99,8 @@ export class BluetoothManager {
         return null;
     }
 
-    private _setPoweredState(powered: boolean): void {
-        if (this.adapterPowered === powered) return;
-
-        this.adapterPowered = powered;
-        this.callbacks.onPowerChanged(powered);
-    }
-
     public setAdapterPower(powered: boolean): boolean {
-        if (!this.adapterProxy) {
+        if (!this.adapter) {
             this.callbacks.onError({
                 title: "No Bluetooth adapter found",
                 description:
@@ -154,32 +109,10 @@ export class BluetoothManager {
             return false;
         }
 
-        try {
-            this.adapterProxy.call_sync(
-                DBUS_PROPERTIES_SET,
-                new GLib.Variant("(ssv)", [
-                    ADAPTER_INTERFACE,
-                    "Powered",
-                    new GLib.Variant("b", powered),
-                ]),
-                Gio.DBusCallFlags.NONE,
-                -1,
-                null,
-            );
-
-            return true;
-        } catch (e) {
-            this.callbacks.onError({
-                title: "Error Enabling/Disabling Bluetooth Adapter",
-                description: e instanceof Error ? e.message : String(e),
-            });
-
-            return false;
-        }
+        return this.adapter.setAdapterPower(powered);
     }
 
     public destroy(): void {
-        this.adapterProxy = null;
-        this.adapterPath = null;
+        this.adapter = null;
     }
 }
