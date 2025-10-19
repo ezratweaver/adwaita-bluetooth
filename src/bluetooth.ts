@@ -1,10 +1,14 @@
 import Gio from "gi://Gio";
-import GLib from "gi://GLib";
+import GLib from "gi://GLib?version=2.0";
 
 const BLUEZ_SERVICE = "org.bluez";
-const DBUS_OM_IFACE = "org.freedesktop.DBus.ObjectManager";
-const DBUS_PROP_IFACE = "org.freedesktop.DBus.Properties";
-const ADAPTER_IFACE = "org.bluez.Adapter1";
+
+// D-Bus system interfaces
+const DBUS_OBJECTMANAGER_INTERFACE = "org.freedesktop.DBus.ObjectManager";
+const DBUS_PROPERTIES_INTERFACE = "org.freedesktop.DBus.Properties";
+
+// Bluez interfaces
+const ADAPTER_INTERFACE = "org.bluez.Adapter1";
 
 interface ErrorPopUp {
     title: string;
@@ -20,7 +24,7 @@ export class BluetoothManager {
     private callbacks: BluetoothCallbacks;
     private systemBus: Gio.DBusConnection;
     private adapterPath: string | null = null;
-    private propsProxy: Gio.DBusProxy | null = null;
+    private adapterPropertiesProxy: Gio.DBusProxy | null = null;
     private adapterPowered: boolean = false;
 
     constructor(callbacks: BluetoothCallbacks) {
@@ -41,9 +45,8 @@ export class BluetoothManager {
                 });
                 return;
             }
-
             this.setupPropsProxy();
-            this.updatePowerState();
+            this.updatePoweredStateFromAdapter();
         } catch (e) {
             this.callbacks.onError({
                 title: "Unknown Error",
@@ -55,45 +58,45 @@ export class BluetoothManager {
     private setupPropsProxy(): void {
         if (!this.adapterPath) return;
 
-        this.propsProxy = Gio.DBusProxy.new_sync(
+        this.adapterPropertiesProxy = Gio.DBusProxy.new_sync(
             this.systemBus,
             Gio.DBusProxyFlags.NONE,
             null,
             BLUEZ_SERVICE,
             this.adapterPath,
-            DBUS_PROP_IFACE,
-            null,
+            DBUS_PROPERTIES_INTERFACE,
         );
 
-        this.propsProxy.connect(
+        this.adapterPropertiesProxy.connect(
             "g-properties-changed",
-            (_: Gio.DBusProxy, changed: GLib.Variant) => {
-                const poweredVariant = changed.lookup_value("Powered", null);
-                if (poweredVariant) {
-                    const powered = poweredVariant.get_boolean();
-                    this.setPowered(powered);
+            (_, changed) => {
+                const poweredValueChanged = changed.lookup_value(
+                    "Powered",
+                    null,
+                );
+
+                if (poweredValueChanged) {
+                    this.setPoweredState(poweredValueChanged.get_boolean());
                 }
             },
         );
     }
 
     private getDefaultAdapter(): string | null {
-        const objManager = Gio.DBusProxy.new_sync(
+        const bluezObjectsProxy = Gio.DBusProxy.new_sync(
             this.systemBus,
             Gio.DBusProxyFlags.NONE,
             null,
             BLUEZ_SERVICE,
             "/",
-            DBUS_OM_IFACE,
-            null,
+            DBUS_OBJECTMANAGER_INTERFACE,
         );
 
-        const result = objManager.call_sync(
+        const result = bluezObjectsProxy.call_sync(
             "GetManagedObjects",
             null,
             Gio.DBusCallFlags.NONE,
             -1,
-            null,
         );
 
         const [managedObjects] = result.deep_unpack() as [
@@ -101,7 +104,7 @@ export class BluetoothManager {
         ];
 
         for (const [path, interfaces] of Object.entries(managedObjects)) {
-            if (ADAPTER_IFACE in interfaces) {
+            if (ADAPTER_INTERFACE in interfaces) {
                 return path;
             }
         }
@@ -109,30 +112,30 @@ export class BluetoothManager {
         return null;
     }
 
-    private updatePowerState(): void {
-        if (!this.propsProxy) return;
+    private updatePoweredStateFromAdapter(): void {
+        if (!this.adapterPropertiesProxy) return;
 
-        const result = this.propsProxy.call_sync(
+        const result = this.adapterPropertiesProxy.call_sync(
             "Get",
-            new GLib.Variant("(ss)", [ADAPTER_IFACE, "Powered"]),
+            new GLib.Variant("(ss)", [ADAPTER_INTERFACE, "Powered"]),
             Gio.DBusCallFlags.NONE,
             -1,
-            null,
         );
 
         const [value] = result.deep_unpack() as [GLib.Variant];
-        this.setPowered(value.get_boolean());
+
+        this.setPoweredState(value.get_boolean());
     }
 
-    private setPowered(powered: boolean): void {
+    private setPoweredState(powered: boolean): void {
         if (this.adapterPowered === powered) return;
 
         this.adapterPowered = powered;
         this.callbacks.onPowerChanged(powered);
     }
 
-    public setPower(powered: boolean): void {
-        if (!this.propsProxy) {
+    public setAdapterPower(powered: boolean): void {
+        if (!this.adapterPropertiesProxy) {
             this.callbacks.onError({
                 title: "No Bluetooth adapter found",
                 description:
@@ -142,20 +145,19 @@ export class BluetoothManager {
         }
 
         try {
-            this.propsProxy.call_sync(
+            this.adapterPropertiesProxy.call_sync(
                 "Set",
                 new GLib.Variant("(ssv)", [
-                    ADAPTER_IFACE,
+                    ADAPTER_INTERFACE,
                     "Powered",
                     new GLib.Variant("b", powered),
                 ]),
                 Gio.DBusCallFlags.NONE,
                 -1,
-                null,
             );
         } catch (e) {
             this.callbacks.onError({
-                title: "Unknown Error",
+                title: "Error Enabling/Disabling Bluetooth Adapter",
                 description: e instanceof Error ? e.message : String(e),
             });
         }
@@ -166,7 +168,7 @@ export class BluetoothManager {
     }
 
     public destroy(): void {
-        this.propsProxy = null;
+        this.adapterPropertiesProxy = null;
         this.adapterPath = null;
     }
 }
