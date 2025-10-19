@@ -125,8 +125,7 @@ export class BluetoothManager {
             adaptersAndDevices.push(adapterAndDevice);
         }
 
-        // return adaptersAndDevices;
-        return [];
+        return adaptersAndDevices;
     }
 
     public setAdapterPower(powered: boolean): boolean {
