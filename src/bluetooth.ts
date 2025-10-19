@@ -144,14 +144,14 @@ export class BluetoothManager {
         this.callbacks.onPowerChanged(powered);
     }
 
-    public setAdapterPower(powered: boolean): void {
+    public setAdapterPower(powered: boolean): boolean {
         if (!this.adapterProxy) {
             this.callbacks.onError({
                 title: "No Bluetooth adapter found",
                 description:
                     "Could not find bluetooth adapter to connect to, please ensure bluetooth is properly configured.",
             });
-            return;
+            return false;
         }
 
         try {
@@ -166,11 +166,15 @@ export class BluetoothManager {
                 -1,
                 null,
             );
+
+            return true;
         } catch (e) {
             this.callbacks.onError({
                 title: "Error Enabling/Disabling Bluetooth Adapter",
                 description: e instanceof Error ? e.message : String(e),
             });
+
+            return false;
         }
     }
 

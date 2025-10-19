@@ -41,9 +41,7 @@ export class Window extends Adw.ApplicationWindow {
         });
 
         this._bluetooth_toggle.connect("state-set", (_, state) => {
-            this._bluetoothManager.setAdapterPower(state);
-
-            this._disabled_state.visible = !state;
+            return !this._bluetoothManager.setAdapterPower(state);
         });
     }
 
