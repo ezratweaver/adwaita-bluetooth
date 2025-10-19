@@ -10,7 +10,7 @@ const DBUS_PROPERTIES_INTERFACE = "org.freedesktop.DBus.Properties";
 // Bluez interfaces
 const ADAPTER_INTERFACE = "org.bluez.Adapter1";
 
-interface ErrorPopUp {
+export interface ErrorPopUp {
     title: string;
     description: string;
 }
