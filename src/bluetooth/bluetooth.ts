@@ -65,7 +65,6 @@ export class BluetoothManager {
                 systemBus: this.systemBus,
                 adapterPath: firstAdapter.adapterPath,
                 devicePaths: firstAdapter.devicePaths,
-                onError: this.callbacks.onError,
                 onPowerChanged: this.callbacks.onPowerChanged,
             });
         } catch (e) {
