@@ -149,8 +149,8 @@ export class BluetoothManager {
         }
     }
 
-    public getDevices(): Device[] {
-        return this.adapter?.devices ?? [];
+    public getSavedDevices(): Device[] {
+        return this.adapter?.savedDevices ?? [];
     }
 
     public destroy(): void {

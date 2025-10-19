@@ -24,7 +24,7 @@ export class Adapter {
 
     private powered: boolean = false;
 
-    public devices: Device[] = [];
+    public savedDevices: Device[] = [];
 
     constructor(props: AdapterProps) {
         this.systemBus = props.systemBus;
@@ -57,17 +57,19 @@ export class Adapter {
             }
         });
 
-        this._syncDevices();
+        this._syncSavedDevices();
     }
 
-    private _syncDevices() {
+    private _syncSavedDevices() {
         for (const devicePath of this.devicePaths) {
             const device = new Device({
                 devicePath: devicePath,
                 systemBus: this.systemBus,
             });
 
-            this.devices.push(device);
+            if (device.paired) {
+                this.savedDevices.push(device);
+            }
         }
     }
 
