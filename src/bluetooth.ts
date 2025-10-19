@@ -37,6 +37,7 @@ export class BluetoothManager {
     private initialize(): void {
         try {
             this.adapterPath = this.getDefaultAdapter();
+
             if (!this.adapterPath) {
                 this.callbacks.onError({
                     title: "No Bluetooth adapter found",
@@ -45,8 +46,10 @@ export class BluetoothManager {
                 });
                 return;
             }
-            this.setupPropsProxy();
-            this.updatePoweredStateFromAdapter();
+
+            this.setupAdapterPropertiesProxy();
+
+            this.syncWithBluez();
         } catch (e) {
             this.callbacks.onError({
                 title: "Unknown Error",
@@ -55,7 +58,22 @@ export class BluetoothManager {
         }
     }
 
-    private setupPropsProxy(): void {
+    private syncWithBluez(): void {
+        if (!this.adapterPropertiesProxy) return;
+
+        const result = this.adapterPropertiesProxy.call_sync(
+            "Get",
+            new GLib.Variant("(ss)", [ADAPTER_INTERFACE, "Powered"]),
+            Gio.DBusCallFlags.NONE,
+            -1,
+        );
+
+        const [value] = result.deep_unpack() as [GLib.Variant];
+
+        this.setPoweredState(value.get_boolean());
+    }
+
+    private setupAdapterPropertiesProxy(): void {
         if (!this.adapterPath) return;
 
         this.adapterPropertiesProxy = Gio.DBusProxy.new_sync(
@@ -110,21 +128,6 @@ export class BluetoothManager {
         }
 
         return null;
-    }
-
-    private updatePoweredStateFromAdapter(): void {
-        if (!this.adapterPropertiesProxy) return;
-
-        const result = this.adapterPropertiesProxy.call_sync(
-            "Get",
-            new GLib.Variant("(ss)", [ADAPTER_INTERFACE, "Powered"]),
-            Gio.DBusCallFlags.NONE,
-            -1,
-        );
-
-        const [value] = result.deep_unpack() as [GLib.Variant];
-
-        this.setPoweredState(value.get_boolean());
     }
 
     private setPoweredState(powered: boolean): void {
