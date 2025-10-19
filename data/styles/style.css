@@ -6,3 +6,11 @@
 .bluetooth-icon {
   color: grey;
 }
+
+headerbar {
+  background: @window_bg_color;
+}
+
+toolbarview {
+  background: @view_bg_color;
+}

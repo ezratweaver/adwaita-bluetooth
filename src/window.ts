@@ -32,8 +32,6 @@ export class Window extends Adw.ApplicationWindow {
 
     constructor(params?: Partial<Adw.ApplicationWindow.ConstructorProps>) {
         super(params);
-        // Disable X button on the top right, since we are targeting Hyprland / Tiling WMs
-        this.set_deletable(false);
 
         this._bluetoothManager = new BluetoothManager({
             onError: this._CallbackOnError,
