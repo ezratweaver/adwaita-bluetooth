@@ -36,8 +36,8 @@ export class Window extends Adw.ApplicationWindow {
         this.set_deletable(false);
 
         this._bluetoothManager = new BluetoothManager({
-            onError: this._onError,
-            onPowerChanged: this._onPowerChanged,
+            onError: this._CallbackOnError,
+            onPowerChanged: this._CallbackOnPowerChanged,
         });
 
         this._bluetooth_toggle.connect("state-set", (switch_, state) => {
@@ -48,12 +48,12 @@ export class Window extends Adw.ApplicationWindow {
         });
     }
 
-    private _onError(error: ErrorPopUp) {
+    private _CallbackOnError = (error: ErrorPopUp) => {
         log(error);
-    }
+    };
 
-    private _onPowerChanged(powered: boolean) {
+    private _CallbackOnPowerChanged = (powered: boolean) => {
         this._bluetooth_toggle.set_active(powered);
         this._disabled_state.visible = !powered;
-    }
+    };
 }

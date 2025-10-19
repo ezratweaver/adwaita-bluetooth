@@ -167,6 +167,7 @@ export class BluetoothManager {
                 ]),
                 Gio.DBusCallFlags.NONE,
                 -1,
+                null,
             );
         } catch (e) {
             this.callbacks.onError({
