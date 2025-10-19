@@ -25,19 +25,21 @@ export class BluetoothManager {
     private systemBus: Gio.DBusConnection;
     private adapterPath: string | null = null;
     private adapterPropertiesProxy: Gio.DBusProxy | null = null;
+
+    // Adapter state
     private adapterPowered: boolean = false;
 
     constructor(callbacks: BluetoothCallbacks) {
         this.callbacks = callbacks;
         this.systemBus = Gio.bus_get_sync(Gio.BusType.SYSTEM, null);
 
-        this.initialize();
+        this._initialize();
     }
 
     // TODO: Update to track intial devices aswell
-    private initialize(): void {
+    private _initialize(): void {
         try {
-            this.adapterPath = this.getDefaultAdapter();
+            this.adapterPath = this._getDefaultAdapter();
 
             if (!this.adapterPath) {
                 this.callbacks.onError({
@@ -48,7 +50,7 @@ export class BluetoothManager {
                 return;
             }
 
-            this.setupAdapterPropertiesProxy();
+            this._setupAdapterPropertiesProxy();
 
             // Sync the powered state on the object with Bluez
             if (!this.adapterPropertiesProxy) return;
@@ -62,7 +64,7 @@ export class BluetoothManager {
 
             const [value] = result.deep_unpack() as [GLib.Variant];
 
-            this.setPoweredState(value.get_boolean());
+            this._setPoweredState(value.get_boolean());
         } catch (e) {
             this.callbacks.onError({
                 title: "Unknown Error",
@@ -71,7 +73,7 @@ export class BluetoothManager {
         }
     }
 
-    private setupAdapterPropertiesProxy(): void {
+    private _setupAdapterPropertiesProxy(): void {
         if (!this.adapterPath) return;
 
         this.adapterPropertiesProxy = Gio.DBusProxy.new_sync(
@@ -92,13 +94,13 @@ export class BluetoothManager {
                 );
 
                 if (poweredValueChanged) {
-                    this.setPoweredState(poweredValueChanged.get_boolean());
+                    this._setPoweredState(poweredValueChanged.get_boolean());
                 }
             },
         );
     }
 
-    private getDefaultAdapter(): string | null {
+    private _getDefaultAdapter(): string | null {
         const bluezObjectsProxy = Gio.DBusProxy.new_sync(
             this.systemBus,
             Gio.DBusProxyFlags.NONE,
@@ -128,7 +130,7 @@ export class BluetoothManager {
         return null;
     }
 
-    private setPoweredState(powered: boolean): void {
+    private _setPoweredState(powered: boolean): void {
         if (this.adapterPowered === powered) return;
 
         this.adapterPowered = powered;
