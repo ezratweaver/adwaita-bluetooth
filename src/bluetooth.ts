@@ -5,7 +5,9 @@ const BLUEZ_SERVICE = "org.bluez";
 
 // D-Bus system interfaces
 const DBUS_OBJECTMANAGER_INTERFACE = "org.freedesktop.DBus.ObjectManager";
-const DBUS_PROPERTIES_INTERFACE = "org.freedesktop.DBus.Properties";
+
+const DBUS_PROPERTIES_SET = "org.freedesktop.DBus.Properties.Set";
+const DBUS_PROPERTIES_GET = "org.freedesktop.DBus.Properties.Get";
 
 // Bluez interfaces
 const ADAPTER_INTERFACE = "org.bluez.Adapter1";
@@ -24,7 +26,9 @@ export class BluetoothManager {
     private callbacks: BluetoothCallbacks;
     private systemBus: Gio.DBusConnection;
     private adapterPath: string | null = null;
-    private adapterPropertiesProxy: Gio.DBusProxy | null = null;
+
+    // proxies
+    private adapterProxy: Gio.DBusProxy | null = null;
 
     // Adapter state
     private adapterPowered: boolean = false;
@@ -50,10 +54,10 @@ export class BluetoothManager {
                 return;
             }
 
-            this._setupAdapterPropertiesProxy();
+            this._setupAdapterProxy();
 
             // Sync the powered state on the object with Bluez
-            if (!this.adapterPropertiesProxy) {
+            if (!this.adapterProxy) {
                 this.callbacks.onError({
                     title: "Failed to access adapter",
                     description: "Could not read bluetooth adapter properties.",
@@ -61,8 +65,8 @@ export class BluetoothManager {
                 return;
             }
 
-            const result = this.adapterPropertiesProxy.call_sync(
-                "Get",
+            const result = this.adapterProxy.call_sync(
+                DBUS_PROPERTIES_GET,
                 new GLib.Variant("(ss)", [ADAPTER_INTERFACE, "Powered"]),
                 Gio.DBusCallFlags.NONE,
                 -1,
@@ -70,7 +74,6 @@ export class BluetoothManager {
             );
 
             const [value] = result.deep_unpack() as [GLib.Variant];
-
             this._setPoweredState(value.get_boolean());
         } catch (e) {
             this.callbacks.onError({
@@ -80,32 +83,26 @@ export class BluetoothManager {
         }
     }
 
-    private _setupAdapterPropertiesProxy(): void {
+    private _setupAdapterProxy(): void {
         if (!this.adapterPath) return;
 
-        this.adapterPropertiesProxy = Gio.DBusProxy.new_sync(
+        this.adapterProxy = Gio.DBusProxy.new_sync(
             this.systemBus,
             Gio.DBusProxyFlags.NONE,
             null,
             BLUEZ_SERVICE,
             this.adapterPath,
-            DBUS_PROPERTIES_INTERFACE,
+            ADAPTER_INTERFACE,
             null,
         );
 
-        this.adapterPropertiesProxy.connect(
-            "g-properties-changed",
-            (_, changed) => {
-                const poweredValueChanged = changed.lookup_value(
-                    "Powered",
-                    null,
-                );
+        this.adapterProxy.connect("g-properties-changed", (_, changed) => {
+            const poweredValueChanged = changed.lookup_value("Powered", null);
 
-                if (poweredValueChanged) {
-                    this._setPoweredState(poweredValueChanged.get_boolean());
-                }
-            },
-        );
+            if (poweredValueChanged) {
+                this._setPoweredState(poweredValueChanged.get_boolean());
+            }
+        });
     }
 
     private _getDefaultAdapter(): string | null {
@@ -148,7 +145,7 @@ export class BluetoothManager {
     }
 
     public setAdapterPower(powered: boolean): void {
-        if (!this.adapterPropertiesProxy) {
+        if (!this.adapterProxy) {
             this.callbacks.onError({
                 title: "No Bluetooth adapter found",
                 description:
@@ -158,8 +155,8 @@ export class BluetoothManager {
         }
 
         try {
-            this.adapterPropertiesProxy.call_sync(
-                "Set",
+            this.adapterProxy.call_sync(
+                DBUS_PROPERTIES_SET,
                 new GLib.Variant("(ssv)", [
                     ADAPTER_INTERFACE,
                     "Powered",
@@ -178,7 +175,7 @@ export class BluetoothManager {
     }
 
     public destroy(): void {
-        this.adapterPropertiesProxy = null;
+        this.adapterProxy = null;
         this.adapterPath = null;
     }
 }
