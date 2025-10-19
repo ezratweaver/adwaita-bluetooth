@@ -1,7 +1,7 @@
 import Adw from "gi://Adw";
 import GObject from "gi://GObject";
 import Gtk from "gi://Gtk?version=4.0";
-import { BluetoothManager, ErrorPopUp } from "./bluetooth.js";
+import { BluetoothManager, ErrorPopUp } from "./bluetooth/bluetooth.js";
 
 export class Window extends Adw.ApplicationWindow {
     private _bluetooth_toggle!: Gtk.Switch;
