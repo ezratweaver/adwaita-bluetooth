@@ -53,13 +53,20 @@ export class BluetoothManager {
             this._setupAdapterPropertiesProxy();
 
             // Sync the powered state on the object with Bluez
-            if (!this.adapterPropertiesProxy) return;
+            if (!this.adapterPropertiesProxy) {
+                this.callbacks.onError({
+                    title: "Failed to access adapter",
+                    description: "Could not read bluetooth adapter properties.",
+                });
+                return;
+            }
 
             const result = this.adapterPropertiesProxy.call_sync(
                 "Get",
                 new GLib.Variant("(ss)", [ADAPTER_INTERFACE, "Powered"]),
                 Gio.DBusCallFlags.NONE,
                 -1,
+                null,
             );
 
             const [value] = result.deep_unpack() as [GLib.Variant];
@@ -83,6 +90,7 @@ export class BluetoothManager {
             BLUEZ_SERVICE,
             this.adapterPath,
             DBUS_PROPERTIES_INTERFACE,
+            null,
         );
 
         this.adapterPropertiesProxy.connect(
@@ -108,6 +116,7 @@ export class BluetoothManager {
             BLUEZ_SERVICE,
             "/",
             DBUS_OBJECTMANAGER_INTERFACE,
+            null,
         );
 
         const result = bluezObjectsProxy.call_sync(
@@ -115,6 +124,7 @@ export class BluetoothManager {
             null,
             Gio.DBusCallFlags.NONE,
             -1,
+            null,
         );
 
         const [managedObjects] = result.deep_unpack() as [
