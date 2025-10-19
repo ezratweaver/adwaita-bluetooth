@@ -177,10 +177,6 @@ export class BluetoothManager {
         }
     }
 
-    public get isPowered(): boolean {
-        return this.adapterPowered;
-    }
-
     public destroy(): void {
         this.adapterPropertiesProxy = null;
         this.adapterPath = null;

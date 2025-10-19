@@ -40,10 +40,9 @@ export class Window extends Adw.ApplicationWindow {
             onPowerChanged: this._CallbackOnPowerChanged,
         });
 
-        this._bluetooth_toggle.connect("state-set", (switch_, state) => {
+        this._bluetooth_toggle.connect("state-set", (_, state) => {
             this._bluetoothManager.setAdapterPower(state);
 
-            switch_.set_active(state);
             this._disabled_state.visible = !state;
         });
     }
