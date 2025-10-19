@@ -1,6 +1,6 @@
 import Gio from "gi://Gio";
 import { Adapter, ADAPTER_INTERFACE } from "./adapter.js";
-import { DEVICE_INTERFACE } from "./device.js";
+import { Device, DEVICE_INTERFACE } from "./device.js";
 
 export const BLUEZ_SERVICE = "org.bluez";
 
@@ -147,6 +147,10 @@ export class BluetoothManager {
             });
             return false;
         }
+    }
+
+    public getDevices(): Device[] {
+        return this.adapter?.devices ?? [];
     }
 
     public destroy(): void {

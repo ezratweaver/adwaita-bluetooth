@@ -22,8 +22,9 @@ export class Adapter {
 
     private onPowerChanged: (powered: boolean) => void;
 
-    private devices: Device[] = [];
     private powered: boolean = false;
+
+    public devices: Device[] = [];
 
     constructor(props: AdapterProps) {
         this.systemBus = props.systemBus;
@@ -55,6 +56,19 @@ export class Adapter {
                 this._setPoweredState(poweredValueChanged.get_boolean());
             }
         });
+
+        this._syncDevices();
+    }
+
+    private _syncDevices() {
+        for (const devicePath of this.devicePaths) {
+            const device = new Device({
+                devicePath: devicePath,
+                systemBus: this.systemBus,
+            });
+
+            this.devices.push(device);
+        }
     }
 
     private _setPoweredState(powered: boolean): void {
