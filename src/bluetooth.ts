@@ -34,6 +34,7 @@ export class BluetoothManager {
         this.initialize();
     }
 
+    // TODO: Update to track intial devices aswell
     private initialize(): void {
         try {
             this.adapterPath = this.getDefaultAdapter();
@@ -49,28 +50,25 @@ export class BluetoothManager {
 
             this.setupAdapterPropertiesProxy();
 
-            this.syncWithBluez();
+            // Sync the powered state on the object with Bluez
+            if (!this.adapterPropertiesProxy) return;
+
+            const result = this.adapterPropertiesProxy.call_sync(
+                "Get",
+                new GLib.Variant("(ss)", [ADAPTER_INTERFACE, "Powered"]),
+                Gio.DBusCallFlags.NONE,
+                -1,
+            );
+
+            const [value] = result.deep_unpack() as [GLib.Variant];
+
+            this.setPoweredState(value.get_boolean());
         } catch (e) {
             this.callbacks.onError({
                 title: "Unknown Error",
                 description: e instanceof Error ? e.message : String(e),
             });
         }
-    }
-
-    private syncWithBluez(): void {
-        if (!this.adapterPropertiesProxy) return;
-
-        const result = this.adapterPropertiesProxy.call_sync(
-            "Get",
-            new GLib.Variant("(ss)", [ADAPTER_INTERFACE, "Powered"]),
-            Gio.DBusCallFlags.NONE,
-            -1,
-        );
-
-        const [value] = result.deep_unpack() as [GLib.Variant];
-
-        this.setPoweredState(value.get_boolean());
     }
 
     private setupAdapterPropertiesProxy(): void {
