@@ -1,6 +1,6 @@
 import Gio from "gi://Gio?version=2.0";
+import GObject from "gi://GObject?version=2.0";
 import { BLUEZ_SERVICE } from "./bluetooth.js";
-import GLib from "gi://GLib?version=2.0";
 
 export const DEVICE_INTERFACE = "org.bluez.Device1";
 
@@ -9,24 +9,93 @@ interface DeviceProps {
     systemBus: Gio.DBusConnection;
 }
 
-export class Device {
+export class Device extends GObject.Object {
     private systemBus: Gio.DBusConnection;
     private devicePath: string;
     private deviceProxy: Gio.DBusProxy;
 
-    public address: string;
-    public alias: string;
-    public blocked: boolean;
-    public bonded: boolean;
-    public connected: boolean;
-    public name: string;
-    public paired: boolean;
-    public trusted: boolean;
+    private _address: string = "";
+    private _alias: string = "";
+    private _blocked: boolean = false;
+    private _bonded: boolean = false;
+    private _connected: boolean = false;
+    private _name: string = "";
+    private _paired: boolean = false;
+    private _trusted: boolean = false;
+
+    static {
+        GObject.registerClass(
+            {
+                Properties: {
+                    address: GObject.ParamSpec.string(
+                        "address",
+                        "Address",
+                        "Device address",
+                        GObject.ParamFlags.READABLE,
+                        "",
+                    ),
+                    alias: GObject.ParamSpec.string(
+                        "alias",
+                        "Alias",
+                        "Device alias",
+                        GObject.ParamFlags.READABLE,
+                        "",
+                    ),
+                    blocked: GObject.ParamSpec.boolean(
+                        "blocked",
+                        "Blocked",
+                        "Device blocked",
+                        GObject.ParamFlags.READABLE,
+                        false,
+                    ),
+                    bonded: GObject.ParamSpec.boolean(
+                        "bonded",
+                        "Bonded",
+                        "Device bonded",
+                        GObject.ParamFlags.READABLE,
+                        false,
+                    ),
+                    connected: GObject.ParamSpec.boolean(
+                        "connected",
+                        "Connected",
+                        "Device connected",
+                        GObject.ParamFlags.READABLE,
+                        false,
+                    ),
+                    name: GObject.ParamSpec.string(
+                        "name",
+                        "Name",
+                        "Device name",
+                        GObject.ParamFlags.READABLE,
+                        "",
+                    ),
+                    paired: GObject.ParamSpec.boolean(
+                        "paired",
+                        "Paired",
+                        "Device paired",
+                        GObject.ParamFlags.READABLE,
+                        false,
+                    ),
+                    trusted: GObject.ParamSpec.boolean(
+                        "trusted",
+                        "Trusted",
+                        "Device trusted",
+                        GObject.ParamFlags.READABLE,
+                        false,
+                    ),
+                },
+                Signals: {
+                    "device-changed": {},
+                },
+            },
+            this,
+        );
+    }
 
     constructor(props: DeviceProps) {
+        super();
         this.systemBus = props.systemBus;
         this.devicePath = props.devicePath;
-
         this.deviceProxy = Gio.DBusProxy.new_sync(
             this.systemBus,
             Gio.DBusProxyFlags.NONE,
@@ -37,61 +106,104 @@ export class Device {
             null,
         );
 
+        this._loadProperties();
+        this._setupPropertyChangeListener();
+    }
+
+    private _loadProperties(): void {
         const unpackProperty = <T>(prop: string): T => {
             const value = this.deviceProxy
                 .get_cached_property(prop)
                 ?.deep_unpack() as T | undefined;
-
             if (value === undefined) {
                 throw new Error(`Missing device property: ${prop}`);
             }
-
             return value;
         };
 
-        this.address = unpackProperty<string>("Address");
-        this.alias = unpackProperty<string>("Alias");
-        this.blocked = unpackProperty<boolean>("Blocked");
-        this.bonded = unpackProperty<boolean>("Bonded");
-        this.connected = unpackProperty<boolean>("Connected");
-        this.name = unpackProperty<string>("Name");
-        this.paired = unpackProperty<boolean>("Paired");
-        this.trusted = unpackProperty<boolean>("Trusted");
+        this._address = unpackProperty<string>("Address");
+        this._alias = unpackProperty<string>("Alias");
+        this._blocked = unpackProperty<boolean>("Blocked");
+        this._bonded = unpackProperty<boolean>("Bonded");
+        this._connected = unpackProperty<boolean>("Connected");
+        this._name = unpackProperty<string>("Name");
+        this._paired = unpackProperty<boolean>("Paired");
+        this._trusted = unpackProperty<boolean>("Trusted");
+    }
 
+    private _setupPropertyChangeListener(): void {
         this.deviceProxy.connect("g-properties-changed", (_, changed) => {
-            const addressChanged = changed.lookup_value("Address", null);
-            const aliasChanged = changed.lookup_value("Alias", null);
-            const blockedChanged = changed.lookup_value("Blocked", null);
-            const bondedChanged = changed.lookup_value("Bonded", null);
-            const connectedChanged = changed.lookup_value("Connected", null);
-            const nameChanged = changed.lookup_value("Name", null);
-            const pairedChanged = changed.lookup_value("Paired", null);
-            const trustedChanged = changed.lookup_value("Trusted", null);
+            let changed_any = false;
 
-            if (addressChanged) {
-                this.address = addressChanged.get_string()[0];
+            const propertyMap: Record<string, keyof Device> = {
+                Address: "address",
+                Alias: "alias",
+                Blocked: "blocked",
+                Bonded: "bonded",
+                Connected: "connected",
+                Name: "name",
+                Paired: "paired",
+                Trusted: "trusted",
+            };
+
+            for (const [dbusProp, privateProp] of Object.entries(propertyMap)) {
+                const changedValue = changed.lookup_value(dbusProp, null);
+                if (changedValue) {
+                    const isBoolean =
+                        dbusProp === "Blocked" ||
+                        dbusProp === "Bonded" ||
+                        dbusProp === "Connected" ||
+                        dbusProp === "Paired" ||
+                        dbusProp === "Trusted";
+
+                    const newValue = isBoolean
+                        ? changedValue.get_boolean()
+                        : changedValue.get_string()[0];
+
+                    if ((this as any)[privateProp] !== newValue) {
+                        (this as any)[privateProp] = newValue;
+                        this.notify(dbusProp.toLowerCase());
+                        changed_any = true;
+                    }
+                }
             }
-            if (aliasChanged) {
-                this.alias = aliasChanged.get_string()[0];
-            }
-            if (blockedChanged) {
-                this.blocked = blockedChanged.get_boolean();
-            }
-            if (bondedChanged) {
-                this.bonded = bondedChanged.get_boolean();
-            }
-            if (connectedChanged) {
-                this.connected = connectedChanged.get_boolean();
-            }
-            if (nameChanged) {
-                this.name = nameChanged.get_string()[0];
-            }
-            if (pairedChanged) {
-                this.paired = pairedChanged.get_boolean();
-            }
-            if (trustedChanged) {
-                this.trusted = trustedChanged.get_boolean();
+
+            if (changed_any) {
+                this.emit("device-changed");
             }
         });
+    }
+
+    // Getters for all properties
+    get address(): string {
+        return this._address;
+    }
+
+    get alias(): string {
+        return this._alias;
+    }
+
+    get blocked(): boolean {
+        return this._blocked;
+    }
+
+    get bonded(): boolean {
+        return this._bonded;
+    }
+
+    get connected(): boolean {
+        return this._connected;
+    }
+
+    get name(): string {
+        return this._name;
+    }
+
+    get paired(): boolean {
+        return this._paired;
+    }
+
+    get trusted(): boolean {
+        return this._trusted;
     }
 }

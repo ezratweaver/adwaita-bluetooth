@@ -33,18 +33,51 @@ export class Window extends Adw.ApplicationWindow {
     constructor(params?: Partial<Adw.ApplicationWindow.ConstructorProps>) {
         super(params);
 
-        this._bluetoothManager = new BluetoothManager({
-            onError: this._CallbackOnError,
-            onPowerChanged: this._CallbackOnPowerChanged,
-        });
+        this._bluetoothManager = new BluetoothManager();
+
+        if (!this._bluetoothManager.adapter) {
+            this._DisplayError({
+                title: "No Bluetooth Adapter",
+                description: "No Bluetooth adapter found on this system",
+            });
+            return;
+        }
+
+        this._bluetoothManager.adapter.bind_property(
+            "powered",
+            this._bluetooth_toggle,
+            "active",
+            GObject.BindingFlags.SYNC_CREATE,
+        );
+
+        this._bluetoothManager.adapter.bind_property(
+            "powered",
+            this._disabled_state,
+            "visible",
+            GObject.BindingFlags.SYNC_CREATE |
+                GObject.BindingFlags.INVERT_BOOLEAN,
+        );
 
         this._bluetooth_toggle.connect("state-set", (_, state) => {
             // setAdapterPower returns false if fails, GTK prevents switch from being flipped if we return true
-            return !this._bluetoothManager.setAdapterPower(state);
+            if (!this._bluetoothManager.adapter) {
+                return true; // Prevent switch toggle if no adapter
+            }
+
+            try {
+                this._bluetoothManager.adapter.setAdapterPower(state);
+                return false; // Allow switch to toggle
+            } catch (error) {
+                this._DisplayError({
+                    title: "Power Control Error",
+                    description: `Failed to set adapter power: ${error}`,
+                });
+                return true; // Prevent switch toggle on error
+            }
         });
     }
 
-    private _CallbackOnError = (error: ErrorPopUp) => {
+    private _DisplayError = (error: ErrorPopUp) => {
         const dialog = new Adw.AlertDialog({
             heading: error.title,
             body: error.description,
@@ -55,11 +88,6 @@ export class Window extends Adw.ApplicationWindow {
         dialog.add_response("ok", "OK");
 
         dialog.present(this);
-    };
-
-    private _CallbackOnPowerChanged = (powered: boolean) => {
-        this._bluetooth_toggle.set_active(powered);
-        this._disabled_state.visible = !powered;
     };
 
     vfunc_close_request(): boolean {

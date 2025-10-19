@@ -1,6 +1,6 @@
 import Gio from "gi://Gio";
 import { Adapter, ADAPTER_INTERFACE } from "./adapter.js";
-import { Device, DEVICE_INTERFACE } from "./device.js";
+import { DEVICE_INTERFACE } from "./device.js";
 
 export const BLUEZ_SERVICE = "org.bluez";
 
@@ -8,7 +8,6 @@ export const BLUEZ_SERVICE = "org.bluez";
 const DBUS_OBJECTMANAGER_INTERFACE = "org.freedesktop.DBus.ObjectManager";
 
 export const DBUS_PROPERTIES_SET = "org.freedesktop.DBus.Properties.Set";
-export const DBUS_PROPERTIES_GET = "org.freedesktop.DBus.Properties.Get";
 
 interface AdapterPathWithDevicePaths {
     adapterPath: string;
@@ -20,28 +19,12 @@ export interface ErrorPopUp {
     description: string;
 }
 
-export interface BluetoothCallbacks {
-    onPowerChanged: (powered: boolean) => void;
-    onError: (error: ErrorPopUp) => void;
-}
-
-/*
- * This class serves as a wrapper around the Adapter class, the purpose
- * for this is to eventually allow switching between adapters, this
- * calls will manage that switching.
- *
- * This class will also manage other system effects on bluetooth, such as rfkill
- */
 export class BluetoothManager {
-    private callbacks: BluetoothCallbacks;
     private systemBus: Gio.DBusConnection;
+    private _adapter: Adapter | null = null;
 
-    private adapter: Adapter | null = null;
-
-    constructor(callbacks: BluetoothCallbacks) {
-        this.callbacks = callbacks;
+    constructor() {
         this.systemBus = Gio.bus_get_sync(Gio.BusType.SYSTEM, null);
-
         this._initialize();
     }
 
@@ -49,29 +32,18 @@ export class BluetoothManager {
         try {
             const adapterPaths = this._getAdaptersAndDevices();
 
-            // TODO: Allow use to pick between adapters
+            // TODO: Allow user to pick between adapters
             const firstAdapter = adapterPaths[0];
 
-            if (!firstAdapter?.adapterPath) {
-                this.callbacks.onError({
-                    title: "No Bluetooth adapter found",
-                    description:
-                        "Could not find bluetooth adapter to connect to, please ensure bluetooth is properly configured.",
+            if (firstAdapter?.adapterPath) {
+                this._adapter = new Adapter({
+                    systemBus: this.systemBus,
+                    adapterPath: firstAdapter.adapterPath,
+                    devicePaths: firstAdapter.devicePaths,
                 });
-                return;
             }
-
-            this.adapter = new Adapter({
-                systemBus: this.systemBus,
-                adapterPath: firstAdapter.adapterPath,
-                devicePaths: firstAdapter.devicePaths,
-                onPowerChanged: this.callbacks.onPowerChanged,
-            });
-        } catch (e) {
-            this.callbacks.onError({
-                title: "Unknown Error",
-                description: e instanceof Error ? e.message : String(e),
-            });
+        } catch (error) {
+            // Silently fail - adapter will be null
         }
     }
 
@@ -127,33 +99,11 @@ export class BluetoothManager {
         return adaptersAndDevices;
     }
 
-    public setAdapterPower(powered: boolean): boolean {
-        if (!this.adapter) {
-            this.callbacks.onError({
-                title: "No Bluetooth adapter found",
-                description:
-                    "Could not find bluetooth adapter to connect to, please ensure bluetooth is properly configured.",
-            });
-            return false;
-        }
-
-        try {
-            this.adapter.setAdapterPower(powered);
-            return true;
-        } catch (e) {
-            this.callbacks.onError({
-                title: "Unknown Error",
-                description: e instanceof Error ? e.message : String(e),
-            });
-            return false;
-        }
-    }
-
-    public getSavedDevices(): Device[] {
-        return this.adapter?.savedDevices ?? [];
+    get adapter(): Adapter | null {
+        return this._adapter;
     }
 
     public destroy(): void {
-        this.adapter = null;
+        this._adapter = null;
     }
 }
