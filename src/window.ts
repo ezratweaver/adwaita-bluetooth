@@ -47,7 +47,16 @@ export class Window extends Adw.ApplicationWindow {
     }
 
     private _CallbackOnError = (error: ErrorPopUp) => {
-        log(error);
+        const dialog = new Adw.AlertDialog({
+            heading: error.title,
+            body: error.description,
+            closeResponse: "ok",
+            defaultResponse: "ok",
+        });
+
+        dialog.add_response("ok", "OK");
+
+        dialog.present(this);
     };
 
     private _CallbackOnPowerChanged = (powered: boolean) => {
