@@ -55,4 +55,9 @@ export class Window extends Adw.ApplicationWindow {
         this._bluetooth_toggle.set_active(powered);
         this._disabled_state.visible = !powered;
     };
+
+    vfunc_close_request(): boolean {
+        this._bluetoothManager.destroy();
+        return super.vfunc_close_request();
+    }
 }
