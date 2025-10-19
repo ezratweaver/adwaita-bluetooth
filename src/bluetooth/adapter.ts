@@ -64,7 +64,7 @@ export class Adapter {
         this.onPowerChanged(powered);
     }
 
-    public setAdapterPower(powered: boolean): boolean {
+    public setAdapterPower(powered: boolean) {
         this.adapterProxy.call_sync(
             DBUS_PROPERTIES_SET,
             new GLib.Variant("(ssv)", [
@@ -76,7 +76,5 @@ export class Adapter {
             -1,
             null,
         );
-
-        return true;
     }
 }

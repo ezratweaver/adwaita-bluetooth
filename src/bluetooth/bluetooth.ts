@@ -137,7 +137,16 @@ export class BluetoothManager {
             return false;
         }
 
-        return this.adapter.setAdapterPower(powered);
+        try {
+            this.adapter.setAdapterPower(powered);
+            return true;
+        } catch (e) {
+            this.callbacks.onError({
+                title: "Unknown Error",
+                description: e instanceof Error ? e.message : String(e),
+            });
+            return false;
+        }
     }
 
     public destroy(): void {
