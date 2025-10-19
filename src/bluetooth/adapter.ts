@@ -1,11 +1,6 @@
 import Gio from "gi://Gio?version=2.0";
 import { Device } from "./device.js";
-import {
-    BLUEZ_SERVICE,
-    DBUS_PROPERTIES_GET,
-    DBUS_PROPERTIES_SET,
-    ErrorPopUp,
-} from "./bluetooth.js";
+import { BLUEZ_SERVICE, DBUS_PROPERTIES_SET, ErrorPopUp } from "./bluetooth.js";
 import GLib from "gi://GLib?version=2.0";
 
 export const ADAPTER_INTERFACE = "org.bluez.Adapter1";
@@ -64,22 +59,14 @@ export class Adapter {
             return;
         }
 
-        // update powered state
-        const isPoweredPacked = this.adapterProxy.call_sync(
-            DBUS_PROPERTIES_GET,
-            new GLib.Variant("(ss)", [ADAPTER_INTERFACE, "Powered"]),
-            Gio.DBusCallFlags.NONE,
-            -1,
-            null,
-        );
+        const isPoweredPacked =
+            this.adapterProxy.get_cached_property("Powered");
 
-        const [isPoweredUnpacked] = isPoweredPacked.deep_unpack() as [
-            GLib.Variant,
-        ];
+        const isPoweredUnpacked = isPoweredPacked?.deep_unpack() as boolean;
 
-        this._setPoweredState(isPoweredUnpacked.get_boolean());
+        this._setPoweredState(isPoweredUnpacked);
 
-        // intialize callback to check of powered state changes
+        // intialize callback to check if powered state changes
         this.adapterProxy.connect("g-properties-changed", (_, changed) => {
             const poweredValueChanged = changed.lookup_value("Powered", null);
 
