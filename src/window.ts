@@ -41,6 +41,7 @@ export class Window extends Adw.ApplicationWindow {
         });
 
         this._bluetooth_toggle.connect("state-set", (_, state) => {
+            // Function returns false if fails, GTK prevents switch from being flipped if we return true
             return !this._bluetoothManager.setAdapterPower(state);
         });
     }
