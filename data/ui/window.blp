@@ -16,13 +16,11 @@ template $Gjs_Window: Adw.ApplicationWindow {
       }
 
       content: Box {
-        orientation: vertical;
-        valign: center;
-
         Box disabled-state {
           orientation: vertical;
           halign: center;
           valign: center;
+          hexpand: true;
           spacing: 6;
 
           Image {
@@ -48,7 +46,21 @@ template $Gjs_Window: Adw.ApplicationWindow {
           }
         }
 
-        Box enabled-state {}
+        Box enabled-state {
+          orientation: vertical;
+          valign: start;
+          margin-top: 20;
+          margin-start: 30;
+          margin-end: 30;
+
+          Label {
+            label: _("Saved Devices");
+
+            css-classes: [
+              "saved-devices",
+            ];
+          }
+        }
       };
     };
   };

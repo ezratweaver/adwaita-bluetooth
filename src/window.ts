@@ -6,6 +6,7 @@ import { BluetoothManager, ErrorPopUp } from "./bluetooth/bluetooth.js";
 export class Window extends Adw.ApplicationWindow {
     private _bluetooth_toggle!: Gtk.Switch;
     private _disabled_state!: Gtk.Box;
+    private _enabled_state!: Gtk.Box;
 
     private _bluetoothManager: BluetoothManager;
 
@@ -17,6 +18,7 @@ export class Window extends Adw.ApplicationWindow {
                     "toastOverlay",
                     "bluetooth-toggle",
                     "disabled-state",
+                    "enabled-state",
                 ],
             },
             this,
@@ -57,6 +59,13 @@ export class Window extends Adw.ApplicationWindow {
             "visible",
             GObject.BindingFlags.SYNC_CREATE |
                 GObject.BindingFlags.INVERT_BOOLEAN,
+        );
+
+        this._bluetoothManager.adapter.bind_property(
+            "powered",
+            this._enabled_state,
+            "visible",
+            GObject.BindingFlags.SYNC_CREATE,
         );
 
         this._bluetooth_toggle.connect("state-set", (_, state) => {
