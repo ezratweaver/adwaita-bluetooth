@@ -166,6 +166,10 @@ export class Adapter extends GObject.Object {
             -1,
             null,
         );
+
+        if (powered) {
+            this.setAdapterDiscovering();
+        }
     }
 
     public setAdapterDiscovering(): void {
