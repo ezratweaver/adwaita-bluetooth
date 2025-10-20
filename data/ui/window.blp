@@ -2,8 +2,8 @@ using Gtk 4.0;
 using Adw 1;
 
 template $Gjs_Window: Adw.ApplicationWindow {
-  default-width: 650;
-  default-height: 600;
+  default-width: 550;
+  default-height: 500;
   width-request: 360;
   height-request: 294;
 
@@ -58,16 +58,12 @@ template $Gjs_Window: Adw.ApplicationWindow {
             halign: start;
             label: _("Devices");
             margin-bottom: 18;
-
-            css-classes: [
-              "body",
-            ];
           }
 
           Gtk.ListBox devices-list {
             selection-mode: none;
-            margin-start: 12;
-            margin-end: 12;
+            margin-start: 6;
+            margin-end: 6;
 
             css-classes: [
               "boxed-list",
