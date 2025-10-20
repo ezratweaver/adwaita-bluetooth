@@ -9,6 +9,7 @@ export class Window extends Adw.ApplicationWindow {
     private _disabled_state!: Gtk.Box;
     private _enabled_state!: Gtk.Box;
     private _devices_list!: Gtk.ListBox;
+    private _discovering_spinner!: Adw.Spinner;
 
     private _bluetoothManager: BluetoothManager;
 
@@ -22,6 +23,7 @@ export class Window extends Adw.ApplicationWindow {
                     "disabled-state",
                     "enabled-state",
                     "devices-list",
+                    "discovering-spinner",
                 ],
             },
             this,
@@ -67,6 +69,13 @@ export class Window extends Adw.ApplicationWindow {
         this._bluetoothManager.adapter.bind_property(
             "powered",
             this._enabled_state,
+            "visible",
+            GObject.BindingFlags.SYNC_CREATE,
+        );
+
+        this._bluetoothManager.adapter.bind_property(
+            "discovering",
+            this._discovering_spinner,
             "visible",
             GObject.BindingFlags.SYNC_CREATE,
         );
