@@ -37,11 +37,15 @@ export class BluetoothManager {
             const firstAdapter = adapterPaths[0];
 
             if (firstAdapter?.adapterPath) {
-                this._adapter = new Adapter({
-                    systemBus: this.systemBus,
-                    adapterPath: firstAdapter.adapterPath,
-                    devicePaths: firstAdapter.devicePaths,
-                });
+                try {
+                    this._adapter = new Adapter({
+                        systemBus: this.systemBus,
+                        adapterPath: firstAdapter.adapterPath,
+                        devicePaths: firstAdapter.devicePaths,
+                    });
+                } catch (e) {
+                    log(`Error occured while initializing Adapter: ${e}`);
+                }
             }
         } catch (error) {
             // Silently fail - adapter will be null

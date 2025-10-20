@@ -67,7 +67,9 @@ export class Adapter extends GObject.Object {
         this._syncSavedDevices();
         this._sortDevices();
 
-        this.setAdapterDiscovering();
+        if (this._powered) {
+            this.setAdapterDiscovering();
+        }
     }
 
     private _loadProperties(): void {
