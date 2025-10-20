@@ -21,6 +21,7 @@ export interface ErrorPopUp {
 
 export class BluetoothManager {
     private systemBus: Gio.DBusConnection;
+
     private _adapter: Adapter | null = null;
 
     constructor() {

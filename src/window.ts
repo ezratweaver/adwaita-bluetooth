@@ -36,7 +36,7 @@ export class Window extends Adw.ApplicationWindow {
         this._bluetoothManager = new BluetoothManager();
 
         if (!this._bluetoothManager.adapter) {
-            this._DisplayError({
+            this._ShowError({
                 title: "No Bluetooth Adapter",
                 description: "No Bluetooth adapter found on this system",
             });
@@ -59,7 +59,6 @@ export class Window extends Adw.ApplicationWindow {
         );
 
         this._bluetooth_toggle.connect("state-set", (_, state) => {
-            // setAdapterPower returns false if fails, GTK prevents switch from being flipped if we return true
             if (!this._bluetoothManager.adapter) {
                 return true; // Prevent switch toggle if no adapter
             }
@@ -68,7 +67,7 @@ export class Window extends Adw.ApplicationWindow {
                 this._bluetoothManager.adapter.setAdapterPower(state);
                 return false; // Allow switch to toggle
             } catch (error) {
-                this._DisplayError({
+                this._ShowError({
                     title: "Power Control Error",
                     description: `Failed to set adapter power: ${error}`,
                 });
@@ -77,7 +76,7 @@ export class Window extends Adw.ApplicationWindow {
         });
     }
 
-    private _DisplayError = (error: ErrorPopUp) => {
+    private _ShowError = (error: ErrorPopUp) => {
         const dialog = new Adw.AlertDialog({
             heading: error.title,
             body: error.description,

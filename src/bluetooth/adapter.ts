@@ -19,7 +19,7 @@ export class Adapter extends GObject.Object {
     private adapterProxy: Gio.DBusProxy;
 
     private _powered: boolean = false;
-    public savedDevices: Device[] = [];
+    private _savedDevices: Device[] = [];
 
     static {
         GObject.registerClass(
@@ -34,7 +34,6 @@ export class Adapter extends GObject.Object {
                     ),
                 },
                 Signals: {
-                    "adapter-changed": {},
                     "power-changed": {
                         param_types: [GObject.TYPE_BOOLEAN],
                     },
@@ -97,7 +96,6 @@ export class Adapter extends GObject.Object {
         this._powered = powered;
         this.notify("powered");
         this.emit("power-changed", powered);
-        this.emit("adapter-changed");
     }
 
     get powered(): boolean {
@@ -116,5 +114,9 @@ export class Adapter extends GObject.Object {
             -1,
             null,
         );
+    }
+
+    get savedDevices(): Device[] {
+        return this._savedDevices;
     }
 }
