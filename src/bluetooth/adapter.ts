@@ -57,6 +57,7 @@ export class Adapter extends GObject.Object {
         this._loadProperties();
         this._setupPropertyChangeListener();
         this._syncSavedDevices();
+        this._sortDevices();
     }
 
     private _loadProperties(): void {
@@ -84,6 +85,31 @@ export class Adapter extends GObject.Object {
                 this.savedDevices.push(device);
             }
         }
+    }
+
+    /*
+     * Sorts devices by priority as:
+     *
+     * 1. Connected devices first
+     * 2. Known but not connected devices second
+     * 3. Unknown/non paired devices last
+     */
+    private _sortDevices(): void {
+        this._savedDevices.sort((a, b) => {
+            if (a.connected && !b.connected) {
+                return -1;
+            } else if (!a.connected && b.connected) {
+                return 1;
+            }
+
+            if (a.paired && !b.paired) {
+                return -1;
+            } else if (!a.paired && b.paired) {
+                return 1;
+            }
+
+            return 0;
+        });
     }
 
     private _setPoweredState(powered: boolean): void {
