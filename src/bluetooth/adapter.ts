@@ -66,6 +66,8 @@ export class Adapter extends GObject.Object {
         this._setupPropertyChangeListener();
         this._syncSavedDevices();
         this._sortDevices();
+
+        this.setAdapterDiscovering();
     }
 
     private _loadProperties(): void {
@@ -83,6 +85,16 @@ export class Adapter extends GObject.Object {
             const poweredValueChanged = changed.lookup_value("Powered", null);
             if (poweredValueChanged) {
                 this._setPoweredState(poweredValueChanged.get_boolean());
+            }
+
+            const discoveringValueChanged = changed.lookup_value(
+                "Discovering",
+                null,
+            );
+            if (discoveringValueChanged) {
+                this._setDiscoveringState(
+                    discoveringValueChanged.get_boolean(),
+                );
             }
         });
     }
@@ -140,10 +152,6 @@ export class Adapter extends GObject.Object {
         this.notify("powered");
     }
 
-    get powered(): boolean {
-        return this._powered;
-    }
-
     public setAdapterPower(powered: boolean): void {
         this.adapterProxy.call_sync(
             DBUS_PROPERTIES_SET,
@@ -156,6 +164,36 @@ export class Adapter extends GObject.Object {
             -1,
             null,
         );
+    }
+
+    public setAdapterDiscovering(): void {
+        this.adapterProxy.call_sync(
+            "StartDiscovery",
+            null,
+            Gio.DBusCallFlags.NONE,
+            -1,
+            null,
+        );
+
+        GLib.timeout_add(GLib.PRIORITY_DEFAULT, 5 * 1000, () => {
+            this.adapterProxy.call_sync(
+                "StopDiscovery",
+                null,
+                Gio.DBusCallFlags.NONE,
+                -1,
+                null,
+            );
+
+            return false;
+        });
+    }
+
+    get powered(): boolean {
+        return this._powered;
+    }
+
+    get discovering(): boolean {
+        return this._discovering;
     }
 
     get devices(): Device[] {
