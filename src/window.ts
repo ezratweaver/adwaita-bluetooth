@@ -38,7 +38,8 @@ export class Window extends Adw.ApplicationWindow {
         if (!this._bluetoothManager.adapter) {
             this._ShowError({
                 title: "No Bluetooth Adapter",
-                description: "No Bluetooth adapter found on this system",
+                description:
+                    "Ensure BlueZ is configured correctly and try again",
             });
             return;
         }

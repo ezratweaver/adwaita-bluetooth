@@ -33,11 +33,6 @@ export class Adapter extends GObject.Object {
                         false,
                     ),
                 },
-                Signals: {
-                    "power-changed": {
-                        param_types: [GObject.TYPE_BOOLEAN],
-                    },
-                },
             },
             this,
         );
@@ -95,7 +90,6 @@ export class Adapter extends GObject.Object {
         if (this._powered === powered) return;
         this._powered = powered;
         this.notify("powered");
-        this.emit("power-changed", powered);
     }
 
     get powered(): boolean {

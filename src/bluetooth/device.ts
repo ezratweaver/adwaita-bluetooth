@@ -96,6 +96,7 @@ export class Device extends GObject.Object {
         super();
         this.systemBus = props.systemBus;
         this.devicePath = props.devicePath;
+
         this.deviceProxy = Gio.DBusProxy.new_sync(
             this.systemBus,
             Gio.DBusProxyFlags.NONE,
