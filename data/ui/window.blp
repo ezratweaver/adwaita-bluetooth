@@ -54,10 +54,18 @@ template $Gjs_Window: Adw.ApplicationWindow {
           margin-end: 30;
           hexpand: true;
 
-          Label {
-            halign: start;
-            label: _("Devices");
+          Box {
             margin-bottom: 18;
+
+            Label {
+              halign: start;
+              hexpand: true;
+              label: _("Devices");
+            }
+
+            Adw.Spinner {
+              halign: end;
+            }
           }
 
           Gtk.ListBox devices-list {
