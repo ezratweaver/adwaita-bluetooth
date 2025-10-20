@@ -98,8 +98,19 @@ export class Window extends Adw.ApplicationWindow {
             });
             row.add_prefix(icon);
 
-            const status = new Gtk.Label({ label: "Not Connected" });
-            row.add_suffix(status);
+            let deviceStatus: string;
+            if (device.connected) {
+                deviceStatus = "Connected";
+            } else if (!device.connected && device.paired) {
+                deviceStatus = "Not Connected";
+            } else {
+                deviceStatus = "Not Set Up";
+            }
+
+            const statusLabel = new Gtk.Label({
+                label: deviceStatus,
+            });
+            row.add_suffix(statusLabel);
 
             this._devices_list.append(row);
         }
