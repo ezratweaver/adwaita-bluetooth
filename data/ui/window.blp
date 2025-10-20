@@ -57,49 +57,21 @@ template $Gjs_Window: Adw.ApplicationWindow {
           Label {
             halign: start;
             label: _("Devices");
-            margin-bottom: 14;
+            margin-bottom: 18;
 
             css-classes: [
-              "devices-label",
+              "body",
             ];
           }
 
-          Gtk.ListBox devices {
+          Gtk.ListBox devices-list {
             selection-mode: none;
-            margin-start: 6;
-            margin-end: 6;
+            margin-start: 12;
+            margin-end: 12;
 
             css-classes: [
               "boxed-list",
             ];
-
-            Adw.ActionRow {
-              [prefix]
-              Image {
-                icon-name: "bluetooth-active-symbolic";
-              }
-
-              title: "Device Name";
-
-              [suffix]
-              Label {
-                label: _("Not Connected");
-              }
-            }
-
-            Adw.ActionRow {
-              title: "Device Name";
-
-              [prefix]
-              Image {
-                icon-name: "bluetooth-active-symbolic";
-              }
-
-              [suffix]
-              Label {
-                label: _("Not Set Up");
-              }
-            }
           }
         }
       };

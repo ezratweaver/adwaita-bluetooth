@@ -14,8 +14,3 @@ headerbar {
 toolbarview {
   background: @view_bg_color;
 }
-
-.devices-label {
-  font-size: 13px;
-  font-family: "sans-serif";
-}

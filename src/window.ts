@@ -7,6 +7,7 @@ export class Window extends Adw.ApplicationWindow {
     private _bluetooth_toggle!: Gtk.Switch;
     private _disabled_state!: Gtk.Box;
     private _enabled_state!: Gtk.Box;
+    private _devices_list!: Gtk.ListBox;
 
     private _bluetoothManager: BluetoothManager;
 
@@ -19,6 +20,7 @@ export class Window extends Adw.ApplicationWindow {
                     "bluetooth-toggle",
                     "disabled-state",
                     "enabled-state",
+                    "devices-list",
                 ],
             },
             this,
@@ -84,6 +86,23 @@ export class Window extends Adw.ApplicationWindow {
                 return true; // Prevent switch toggle on error
             }
         });
+
+        for (const device of this._bluetoothManager.adapter.savedDevices) {
+            const row = new Adw.ActionRow({
+                title: device.name,
+                activatable: true,
+            });
+
+            const icon = new Gtk.Image({
+                icon_name: "bluetooth-active-symbolic",
+            });
+            row.add_prefix(icon);
+
+            const status = new Gtk.Label({ label: "Not Connected" });
+            row.add_suffix(status);
+
+            this._devices_list.append(row);
+        }
     }
 
     private _ShowError = (error: ErrorPopUp) => {
