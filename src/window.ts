@@ -2,6 +2,7 @@ import Adw from "gi://Adw";
 import GObject from "gi://GObject";
 import Gtk from "gi://Gtk?version=4.0";
 import { BluetoothManager, ErrorPopUp } from "./bluetooth/bluetooth.js";
+import { Device } from "./bluetooth/device.js";
 
 export class Window extends Adw.ApplicationWindow {
     private _bluetooth_toggle!: Gtk.Switch;
@@ -98,21 +99,18 @@ export class Window extends Adw.ApplicationWindow {
             });
             row.add_prefix(icon);
 
-            let deviceStatus: string;
-            if (device.connected) {
-                deviceStatus = "Connected";
-            } else if (!device.connected && device.paired) {
-                deviceStatus = "Not Connected";
-            } else {
-                deviceStatus = "Not Set Up";
-            }
-
             const statusLabel = new Gtk.Label({
-                label: deviceStatus,
+                label: device.connectedStatus,
             });
             row.add_suffix(statusLabel);
 
             this._devices_list.append(row);
+
+            device.connect("device-changed", (device: Device) => {
+                row.set_title(device.name);
+
+                statusLabel.set_label(device.connectedStatus);
+            });
         }
     }
 

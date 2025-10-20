@@ -196,6 +196,19 @@ export class Device extends GObject.Object {
         return this._connected;
     }
 
+    get connectedStatus(): string {
+        let deviceStatus: string;
+        if (this.connected) {
+            deviceStatus = "Connected";
+        } else if (!this.connected && this.paired) {
+            deviceStatus = "Not Connected";
+        } else {
+            deviceStatus = "Not Set Up";
+        }
+
+        return deviceStatus;
+    }
+
     get name(): string {
         return this._name;
     }
