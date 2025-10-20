@@ -1,11 +1,11 @@
 import Gio from "gi://Gio";
 import { Adapter, ADAPTER_INTERFACE } from "./adapter.js";
-import { DEVICE_INTERFACE } from "./device.js";
 
 export const BLUEZ_SERVICE = "org.bluez";
 
 // D-Bus system interfaces
-const DBUS_OBJECTMANAGER_INTERFACE = "org.freedesktop.DBus.ObjectManager";
+export const DBUS_OBJECTMANAGER_INTERFACE =
+    "org.freedesktop.DBus.ObjectManager";
 
 export const DBUS_PROPERTIES_SET = "org.freedesktop.DBus.Properties.Set";
 
@@ -36,12 +36,11 @@ export class BluetoothManager {
             // TODO: Allow user to pick between adapters
             const firstAdapter = adapterPaths[0];
 
-            if (firstAdapter?.adapterPath) {
+            if (firstAdapter) {
                 try {
                     this._adapter = new Adapter({
                         systemBus: this.systemBus,
-                        adapterPath: firstAdapter.adapterPath,
-                        devicePaths: firstAdapter.devicePaths,
+                        adapterPath: firstAdapter,
                     });
                 } catch (e) {
                     log(`Error occured while initializing Adapter: ${e}`);
@@ -52,7 +51,7 @@ export class BluetoothManager {
         }
     }
 
-    private _getAdaptersAndDevices(): AdapterPathWithDevicePaths[] {
+    private _getAdaptersAndDevices(): string[] {
         const bluezObjectsProxy = Gio.DBusProxy.new_sync(
             this.systemBus,
             Gio.DBusProxyFlags.NONE,
@@ -84,24 +83,7 @@ export class BluetoothManager {
             }
         }
 
-        const adaptersAndDevices: AdapterPathWithDevicePaths[] = [];
-        for (const adapterPath of adapterPaths) {
-            const adapterAndDevice: AdapterPathWithDevicePaths = {
-                adapterPath,
-                devicePaths: [],
-            };
-            for (const [path, interfaces] of pathsAndInterfaces) {
-                if (
-                    path.includes(adapterPath) &&
-                    DEVICE_INTERFACE in interfaces
-                ) {
-                    adapterAndDevice.devicePaths.push(path);
-                }
-            }
-            adaptersAndDevices.push(adapterAndDevice);
-        }
-
-        return adaptersAndDevices;
+        return adapterPaths;
     }
 
     get adapter(): Adapter | null {

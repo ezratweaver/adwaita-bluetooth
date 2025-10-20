@@ -1,14 +1,17 @@
 import Gio from "gi://Gio?version=2.0";
 import GObject from "gi://GObject?version=2.0";
 import GLib from "gi://GLib?version=2.0";
-import { Device } from "./device.js";
-import { BLUEZ_SERVICE, DBUS_PROPERTIES_SET } from "./bluetooth.js";
+import { Device, DEVICE_INTERFACE } from "./device.js";
+import {
+    BLUEZ_SERVICE,
+    DBUS_OBJECTMANAGER_INTERFACE,
+    DBUS_PROPERTIES_SET,
+} from "./bluetooth.js";
 
 export const ADAPTER_INTERFACE = "org.bluez.Adapter1";
 
 interface AdapterProps {
     adapterPath: string;
-    devicePaths: string[];
     systemBus: Gio.DBusConnection;
 }
 
@@ -50,7 +53,6 @@ export class Adapter extends GObject.Object {
         super();
         this.systemBus = props.systemBus;
         this.adapterPath = props.adapterPath;
-        this.devicePaths = props.devicePaths;
 
         this.adapterProxy = Gio.DBusProxy.new_sync(
             this.systemBus,
@@ -102,6 +104,39 @@ export class Adapter extends GObject.Object {
     }
 
     private _syncSavedDevices(): void {
+        const bluezObjectsProxy = Gio.DBusProxy.new_sync(
+            this.systemBus,
+            Gio.DBusProxyFlags.NONE,
+            null,
+            BLUEZ_SERVICE,
+            "/",
+            DBUS_OBJECTMANAGER_INTERFACE,
+            null,
+        );
+
+        const result = bluezObjectsProxy.call_sync(
+            "GetManagedObjects",
+            null,
+            Gio.DBusCallFlags.NONE,
+            -1,
+            null,
+        );
+
+        const [managedObjects] = result.deep_unpack() as [
+            Record<string, Record<string, any>>,
+        ];
+
+        const pathsAndInterfaces = Object.entries(managedObjects);
+
+        for (const [path, interfaces] of pathsAndInterfaces) {
+            if (
+                path.includes(this.adapterPath) &&
+                DEVICE_INTERFACE in interfaces
+            ) {
+                this.devicePaths.push(path);
+            }
+        }
+
         for (const devicePath of this.devicePaths) {
             const device = new Device({
                 devicePath: devicePath,
