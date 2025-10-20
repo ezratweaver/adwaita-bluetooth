@@ -13,6 +13,8 @@ export class Window extends Adw.ApplicationWindow {
 
     private _bluetoothManager: BluetoothManager;
 
+    private _displayedDevices: Map<string, Adw.ActionRow> = new Map();
+
     static {
         GObject.registerClass(
             {
@@ -43,7 +45,7 @@ export class Window extends Adw.ApplicationWindow {
         this._bluetoothManager = new BluetoothManager();
 
         if (!this._bluetoothManager.adapter) {
-            this._ShowError({
+            this._showError({
                 title: "No Bluetooth Adapter",
                 description:
                     "Ensure BlueZ is configured correctly and try again",
@@ -89,7 +91,7 @@ export class Window extends Adw.ApplicationWindow {
                 this._bluetoothManager.adapter.setAdapterPower(state);
                 return false; // Allow switch to toggle
             } catch (error) {
-                this._ShowError({
+                this._showError({
                     title: "Power Control Error",
                     description: `Failed to set adapter power: ${error}`,
                 });
@@ -98,33 +100,17 @@ export class Window extends Adw.ApplicationWindow {
         });
 
         for (const device of this._bluetoothManager.adapter.devices) {
-            const row = new Adw.ActionRow({
-                name: device.devicePath,
-                title: device.name,
-                activatable: true,
-            });
-
-            const icon = new Gtk.Image({
-                icon_name: "bluetooth-active-symbolic",
-            });
-            row.add_prefix(icon);
-
-            const statusLabel = new Gtk.Label({
-                label: device.connectedStatus,
-            });
-            row.add_suffix(statusLabel);
-
-            this._devices_list.append(row);
-
-            device.connect("device-changed", (device: Device) => {
-                row.set_title(device.name);
-
-                statusLabel.set_label(device.connectedStatus);
-            });
+            this._addDevice(device);
         }
+
+        this._bluetoothManager.adapter.connect("device-added", this._addDevice);
+        this._bluetoothManager.adapter.connect(
+            "device-removed",
+            this._removeDevice,
+        );
     }
 
-    private _ShowError = (error: ErrorPopUp) => {
+    private _showError = (error: ErrorPopUp) => {
         const dialog = new Adw.AlertDialog({
             heading: error.title,
             body: error.description,
@@ -136,6 +122,44 @@ export class Window extends Adw.ApplicationWindow {
 
         dialog.present(this);
     };
+
+    private _addDevice(device: Device) {
+        const row = new Adw.ActionRow({
+            name: device.devicePath,
+            title: device.name,
+            activatable: true,
+        });
+
+        const icon = new Gtk.Image({
+            icon_name: "bluetooth-active-symbolic",
+        });
+
+        row.add_prefix(icon);
+
+        const statusLabel = new Gtk.Label({
+            label: device.connectedStatus,
+        });
+
+        row.add_suffix(statusLabel);
+
+        this._devices_list.append(row);
+
+        device.connect("device-changed", (device: Device) => {
+            row.set_title(device.name);
+
+            statusLabel.set_label(device.connectedStatus);
+        });
+
+        this._displayedDevices.set(device.devicePath, row);
+    }
+
+    private _removeDevice(devicePath: string) {
+        const row = this._displayedDevices.get(devicePath);
+
+        if (row) this._devices_list.remove(row);
+
+        this._displayedDevices.delete(devicePath);
+    }
 
     vfunc_close_request(): boolean {
         this._bluetoothManager.destroy();

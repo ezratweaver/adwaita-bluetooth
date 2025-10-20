@@ -247,7 +247,7 @@ export class Adapter extends GObject.Object {
             null,
         );
 
-        GLib.timeout_add(GLib.PRIORITY_DEFAULT, 5 * 1000, () => {
+        GLib.timeout_add(GLib.PRIORITY_DEFAULT, 30 * 1000, () => {
             this.adapterProxy.call_sync(
                 "StopDiscovery",
                 null,
