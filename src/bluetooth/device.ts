@@ -11,9 +11,9 @@ interface DeviceProps {
 
 export class Device extends GObject.Object {
     private systemBus: Gio.DBusConnection;
-    private devicePath: string;
     private deviceProxy: Gio.DBusProxy;
 
+    private _devicePath: string;
     private _address: string = "";
     private _alias: string = "";
     private _blocked: boolean = false;
@@ -95,14 +95,14 @@ export class Device extends GObject.Object {
     constructor(props: DeviceProps) {
         super();
         this.systemBus = props.systemBus;
-        this.devicePath = props.devicePath;
+        this._devicePath = props.devicePath;
 
         this.deviceProxy = Gio.DBusProxy.new_sync(
             this.systemBus,
             Gio.DBusProxyFlags.NONE,
             null,
             BLUEZ_SERVICE,
-            this.devicePath,
+            this._devicePath,
             DEVICE_INTERFACE,
             null,
         );
@@ -176,6 +176,10 @@ export class Device extends GObject.Object {
     }
 
     // Getters for all properties
+    get devicePath(): string {
+        return this._devicePath;
+    }
+
     get address(): string {
         return this._address;
     }

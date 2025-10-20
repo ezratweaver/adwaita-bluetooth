@@ -40,6 +40,14 @@ export class Adapter extends GObject.Object {
                         false,
                     ),
                 },
+                Signals: {
+                    "device-added": {
+                        param_types: [Device.$gtype],
+                    },
+                    "device-removed": {
+                        param_types: [GObject.TYPE_STRING],
+                    },
+                },
             },
             this,
         );
@@ -132,6 +140,47 @@ export class Adapter extends GObject.Object {
                 this._sortDevices();
             });
         }
+
+        objectManager.connect("interface-added", (_, object, iface) => {
+            if (iface.get_info().name === DEVICE_INTERFACE) {
+                const path = object.get_object_path();
+                if (path.includes(this.adapterPath)) {
+                    let newDevice: Device;
+                    try {
+                        newDevice = new Device({
+                            systemBus: this.systemBus,
+                            devicePath: path as string,
+                        });
+                    } catch {
+                        // Device failed to load, we're not gonna throw a fit about it
+                        return;
+                    }
+
+                    this.devicePaths.push(path);
+                    this.devices.push(newDevice);
+                    this.emit("device-added", newDevice);
+                }
+            }
+        });
+
+        objectManager.connect("interface-removed", (_, object, iface) => {
+            if (iface.get_info().name === DEVICE_INTERFACE) {
+                const path = object.get_object_path();
+                if (path.includes(this.adapterPath)) {
+                    const deviceIndex = this.devices.findIndex(
+                        (device) => device.devicePath === path,
+                    );
+
+                    if (deviceIndex !== -1) {
+                        this.devices.splice(deviceIndex, 1);
+                        this.devicePaths = this.devicePaths.filter(
+                            (p) => p !== path,
+                        );
+                        this.emit("device-removed", path);
+                    }
+                }
+            }
+        });
     }
 
     /*
