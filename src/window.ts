@@ -88,7 +88,7 @@ export class Window extends Adw.ApplicationWindow {
             }
         });
 
-        for (const device of this._bluetoothManager.adapter.savedDevices) {
+        for (const device of this._bluetoothManager.adapter.devices) {
             const row = new Adw.ActionRow({
                 title: device.name,
                 activatable: true,

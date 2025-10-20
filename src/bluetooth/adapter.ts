@@ -19,7 +19,7 @@ export class Adapter extends GObject.Object {
     private adapterProxy: Gio.DBusProxy;
 
     private _powered: boolean = false;
-    private _savedDevices: Device[] = [];
+    private _devices: Device[] = [];
 
     static {
         GObject.registerClass(
@@ -82,8 +82,12 @@ export class Adapter extends GObject.Object {
                 systemBus: this.systemBus,
             });
             if (device.paired) {
-                this.savedDevices.push(device);
+                this.devices.push(device);
             }
+
+            device.connect("device-changed", () => {
+                this._sortDevices();
+            });
         }
     }
 
@@ -95,7 +99,7 @@ export class Adapter extends GObject.Object {
      * 3. Unknown/non paired devices last
      */
     private _sortDevices(): void {
-        this._savedDevices.sort((a, b) => {
+        this._devices.sort((a, b) => {
             if (a.connected && !b.connected) {
                 return -1;
             } else if (!a.connected && b.connected) {
@@ -136,7 +140,7 @@ export class Adapter extends GObject.Object {
         );
     }
 
-    get savedDevices(): Device[] {
-        return this._savedDevices;
+    get devices(): Device[] {
+        return this._devices;
     }
 }
