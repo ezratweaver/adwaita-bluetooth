@@ -128,10 +128,18 @@ export class Adapter extends GObject.Object {
         }
 
         for (const devicePath of this.devicePaths) {
-            const device = new Device({
-                devicePath: devicePath,
-                systemBus: this.systemBus,
-            });
+            let device: Device;
+            try {
+                device = new Device({
+                    devicePath: devicePath,
+                    systemBus: this.systemBus,
+                });
+            } catch (e) {
+                log(
+                    `Encountered an error while creating device ${devicePath}: ${e}`,
+                );
+                continue;
+            }
             if (device.paired) {
                 this.devices.push(device);
             }
@@ -141,9 +149,10 @@ export class Adapter extends GObject.Object {
             });
         }
 
-        objectManager.connect("interface-added", (_, object, iface) => {
-            log("interface got added!");
-            if (iface.get_info().name === DEVICE_INTERFACE) {
+        objectManager.connect("object-added", (_, object) => {
+            const hasDeviceInterface = object.get_interface(DEVICE_INTERFACE);
+
+            if (hasDeviceInterface) {
                 const path = object.get_object_path();
                 if (path.includes(this.adapterPath)) {
                     let newDevice: Device;
@@ -164,8 +173,10 @@ export class Adapter extends GObject.Object {
             }
         });
 
-        objectManager.connect("interface-removed", (_, object, iface) => {
-            if (iface.get_info().name === DEVICE_INTERFACE) {
+        objectManager.connect("object-removed", (_, object) => {
+            const hasDeviceInterface = object.get_interface(DEVICE_INTERFACE);
+
+            if (hasDeviceInterface) {
                 const path = object.get_object_path();
                 if (path.includes(this.adapterPath)) {
                     const deviceIndex = this.devices.findIndex(
