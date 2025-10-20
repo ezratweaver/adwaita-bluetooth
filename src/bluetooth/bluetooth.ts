@@ -3,16 +3,7 @@ import { Adapter, ADAPTER_INTERFACE } from "./adapter.js";
 
 export const BLUEZ_SERVICE = "org.bluez";
 
-// D-Bus system interfaces
-export const DBUS_OBJECTMANAGER_INTERFACE =
-    "org.freedesktop.DBus.ObjectManager";
-
 export const DBUS_PROPERTIES_SET = "org.freedesktop.DBus.Properties.Set";
-
-interface AdapterPathWithDevicePaths {
-    adapterPath: string;
-    devicePaths: string[];
-}
 
 export interface ErrorPopUp {
     title: string;
@@ -52,33 +43,19 @@ export class BluetoothManager {
     }
 
     private _getAdaptersAndDevices(): string[] {
-        const bluezObjectsProxy = Gio.DBusProxy.new_sync(
-            this.systemBus,
-            Gio.DBusProxyFlags.NONE,
-            null,
+        const objectManager = Gio.DBusObjectManagerClient.new_for_bus_sync(
+            Gio.BusType.SYSTEM,
+            Gio.DBusObjectManagerClientFlags.NONE,
             BLUEZ_SERVICE,
             "/",
-            DBUS_OBJECTMANAGER_INTERFACE,
+            null,
             null,
         );
-
-        const result = bluezObjectsProxy.call_sync(
-            "GetManagedObjects",
-            null,
-            Gio.DBusCallFlags.NONE,
-            -1,
-            null,
-        );
-
-        const [managedObjects] = result.deep_unpack() as [
-            Record<string, Record<string, any>>,
-        ];
-
-        const pathsAndInterfaces = Object.entries(managedObjects);
 
         const adapterPaths: string[] = [];
-        for (const [path, interfaces] of pathsAndInterfaces) {
-            if (ADAPTER_INTERFACE in interfaces) {
+        for (const obj of objectManager.get_objects()) {
+            const path = obj.get_object_path();
+            if (obj.get_interface(ADAPTER_INTERFACE)) {
                 adapterPaths.push(path);
             }
         }

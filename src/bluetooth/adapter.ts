@@ -2,11 +2,7 @@ import Gio from "gi://Gio?version=2.0";
 import GObject from "gi://GObject?version=2.0";
 import GLib from "gi://GLib?version=2.0";
 import { Device, DEVICE_INTERFACE } from "./device.js";
-import {
-    BLUEZ_SERVICE,
-    DBUS_OBJECTMANAGER_INTERFACE,
-    DBUS_PROPERTIES_SET,
-} from "./bluetooth.js";
+import { BLUEZ_SERVICE, DBUS_PROPERTIES_SET } from "./bluetooth.js";
 
 export const ADAPTER_INTERFACE = "org.bluez.Adapter1";
 
@@ -104,34 +100,20 @@ export class Adapter extends GObject.Object {
     }
 
     private _syncSavedDevices(): void {
-        const bluezObjectsProxy = Gio.DBusProxy.new_sync(
-            this.systemBus,
-            Gio.DBusProxyFlags.NONE,
-            null,
+        const objectManager = Gio.DBusObjectManagerClient.new_for_bus_sync(
+            Gio.BusType.SYSTEM,
+            Gio.DBusObjectManagerClientFlags.NONE,
             BLUEZ_SERVICE,
             "/",
-            DBUS_OBJECTMANAGER_INTERFACE,
+            null,
             null,
         );
 
-        const result = bluezObjectsProxy.call_sync(
-            "GetManagedObjects",
-            null,
-            Gio.DBusCallFlags.NONE,
-            -1,
-            null,
-        );
-
-        const [managedObjects] = result.deep_unpack() as [
-            Record<string, Record<string, any>>,
-        ];
-
-        const pathsAndInterfaces = Object.entries(managedObjects);
-
-        for (const [path, interfaces] of pathsAndInterfaces) {
+        for (const obj of objectManager.get_objects()) {
+            const path = obj.get_object_path();
             if (
                 path.includes(this.adapterPath) &&
-                DEVICE_INTERFACE in interfaces
+                obj.get_interface(DEVICE_INTERFACE)
             ) {
                 this.devicePaths.push(path);
             }
