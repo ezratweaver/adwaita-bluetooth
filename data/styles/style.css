@@ -15,7 +15,7 @@ toolbarview {
   background: @view_bg_color;
 }
 
-.saved-devices {
+.devices-label {
   font-size: 13px;
   font-family: "sans-serif";
 }
