@@ -136,15 +136,15 @@ export class Device extends GObject.Object {
         this.deviceProxy.connect("g-properties-changed", (_, changed) => {
             let changed_any = false;
 
-            const propertyMap: Record<string, keyof Device> = {
-                Address: "address",
-                Alias: "alias",
-                Blocked: "blocked",
-                Bonded: "bonded",
-                Connected: "connected",
-                Name: "name",
-                Paired: "paired",
-                Trusted: "trusted",
+            const propertyMap: Record<string, string> = {
+                Address: "_address",
+                Alias: "_alias",
+                Blocked: "_blocked",
+                Bonded: "_bonded",
+                Connected: "_connected",
+                Name: "_name",
+                Paired: "_paired",
+                Trusted: "_trusted",
             };
 
             for (const [dbusProp, privateProp] of Object.entries(propertyMap)) {
