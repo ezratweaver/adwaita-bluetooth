@@ -19,6 +19,7 @@ export class Adapter extends GObject.Object {
     private adapterProxy: Gio.DBusProxy;
 
     private _powered: boolean = false;
+    private _discovering: boolean = false;
     private _devices: Device[] = [];
 
     static {
@@ -29,6 +30,13 @@ export class Adapter extends GObject.Object {
                         "powered",
                         "Powered",
                         "Adapter powered state",
+                        GObject.ParamFlags.READABLE,
+                        false,
+                    ),
+                    discovering: GObject.ParamSpec.boolean(
+                        "discovering",
+                        "Discovering",
+                        "Adapter currently discovering devices",
                         GObject.ParamFlags.READABLE,
                         false,
                     ),
@@ -61,9 +69,13 @@ export class Adapter extends GObject.Object {
     }
 
     private _loadProperties(): void {
-        const poweredPacked = this.adapterProxy.get_cached_property("Powered");
-        const poweredUnpacked = poweredPacked?.deep_unpack() as boolean;
-        this._setPoweredState(poweredUnpacked);
+        const powered = this.adapterProxy.get_cached_property("Powered");
+        this._setPoweredState(powered?.deep_unpack() as boolean);
+
+        const discovering =
+            this.adapterProxy.get_cached_property("Discovering");
+
+        this._setDiscoveringState(discovering?.deep_unpack() as boolean);
     }
 
     private _setupPropertyChangeListener(): void {
@@ -114,6 +126,12 @@ export class Adapter extends GObject.Object {
 
             return 0;
         });
+    }
+
+    private _setDiscoveringState(discovering: boolean) {
+        if (this._discovering === discovering) return;
+        this._discovering = discovering;
+        this.notify("discovering");
     }
 
     private _setPoweredState(powered: boolean): void {
