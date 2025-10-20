@@ -142,6 +142,7 @@ export class Adapter extends GObject.Object {
         }
 
         objectManager.connect("interface-added", (_, object, iface) => {
+            log("interface got added!");
             if (iface.get_info().name === DEVICE_INTERFACE) {
                 const path = object.get_object_path();
                 if (path.includes(this.adapterPath)) {
@@ -220,6 +221,26 @@ export class Adapter extends GObject.Object {
         this.notify("powered");
     }
 
+    private StartDiscovery() {
+        this.adapterProxy.call_sync(
+            "StartDiscovery",
+            null,
+            Gio.DBusCallFlags.NONE,
+            -1,
+            null,
+        );
+    }
+
+    private StopDiscovery() {
+        this.adapterProxy.call_sync(
+            "StopDiscovery",
+            null,
+            Gio.DBusCallFlags.NONE,
+            -1,
+            null,
+        );
+    }
+
     public setAdapterPower(powered: boolean): void {
         this.adapterProxy.call_sync(
             DBUS_PROPERTIES_SET,
@@ -239,22 +260,10 @@ export class Adapter extends GObject.Object {
     }
 
     public setAdapterDiscovering(): void {
-        this.adapterProxy.call_sync(
-            "StartDiscovery",
-            null,
-            Gio.DBusCallFlags.NONE,
-            -1,
-            null,
-        );
+        this.StartDiscovery();
 
         GLib.timeout_add(GLib.PRIORITY_DEFAULT, 30 * 1000, () => {
-            this.adapterProxy.call_sync(
-                "StopDiscovery",
-                null,
-                Gio.DBusCallFlags.NONE,
-                -1,
-                null,
-            );
+            this.StopDiscovery();
 
             return false;
         });
@@ -270,5 +279,13 @@ export class Adapter extends GObject.Object {
 
     get devices(): Device[] {
         return this._devices;
+    }
+
+    func_dispose() {
+        if (this.discovering) {
+            this.StopDiscovery();
+        }
+
+        super.vfunc_dispose();
     }
 }
