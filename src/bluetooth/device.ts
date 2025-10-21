@@ -284,7 +284,6 @@ export class Device extends GObject.Object {
             });
         } finally {
             this._setConnecting(false);
-            this.agent.unregister();
         }
     }
 

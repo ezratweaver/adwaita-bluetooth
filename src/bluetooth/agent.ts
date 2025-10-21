@@ -1,5 +1,6 @@
 import Gio from "gi://Gio?version=2.0";
 import GLib from "gi://GLib?version=2.0";
+import GObject from "gi://GObject?version=2.0";
 import { BLUEZ_SERVICE } from "./bluetooth.js";
 
 export const AGENT_INTERFACE = "org.bluez.Agent1";
@@ -9,13 +10,28 @@ interface AgentProps {
     systemBus: Gio.DBusConnection;
 }
 
-export class BluetoothAgent {
+export class BluetoothAgent extends GObject.Object {
     private systemBus: Gio.DBusConnection;
     private agentPath: string = "/com/eweaver/adw_bluetooth/agent";
     private agentNodeInfo: Gio.DBusNodeInfo;
     private registrationId: number | null = null;
+    private pendingRequests: Map<string, Gio.DBusMethodInvocation> = new Map();
+
+    static {
+        GObject.registerClass(
+            {
+                Signals: {
+                    "pin-request": {
+                        param_types: [GObject.TYPE_STRING, GObject.TYPE_STRING],
+                    },
+                },
+            },
+            this,
+        );
+    }
 
     constructor(props: AgentProps) {
+        super();
         this.systemBus = props.systemBus;
 
         const agentXml = `
@@ -139,11 +155,14 @@ export class BluetoothAgent {
             try {
                 switch (methodName) {
                     case "RequestPinCode": {
-                        // TODO: Implement 4 digit pin code (string) input dialog for user to input code
-                        invocation.return_dbus_error(
-                            "org.bluez.Error.Rejected",
-                            "PIN request not implemented yet",
-                        );
+                        const [devicePath] = parameters.deep_unpack() as [string];
+                        const requestId = `pin-${Date.now()}`;
+                        
+                        // Store the invocation for later response
+                        this.pendingRequests.set(requestId, invocation);
+                        
+                        // Emit signal for UI to handle
+                        this.emit("pin-request", devicePath, requestId);
                         break;
                     }
                     case "RequestPasskey": {
@@ -218,5 +237,30 @@ export class BluetoothAgent {
                 `Agent error: ${error}`,
             );
         });
+    }
+
+    public providePinCode(requestId: string, pin: string): void {
+        const invocation = this.pendingRequests.get(requestId);
+        if (invocation) {
+            invocation.return_value(new GLib.Variant("(s)", [pin]));
+            this.pendingRequests.delete(requestId);
+            
+            // Unregister agent after PIN is provided
+            this.unregister();
+        }
+    }
+
+    public cancelPinRequest(requestId: string): void {
+        const invocation = this.pendingRequests.get(requestId);
+        if (invocation) {
+            invocation.return_dbus_error(
+                "org.bluez.Error.Canceled",
+                "PIN request canceled by user",
+            );
+            this.pendingRequests.delete(requestId);
+            
+            // Unregister agent after cancellation
+            this.unregister();
+        }
     }
 }

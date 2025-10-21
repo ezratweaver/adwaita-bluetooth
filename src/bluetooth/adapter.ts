@@ -319,6 +319,10 @@ export class Adapter extends GObject.Object {
         return this._devices;
     }
 
+    get bluetoothAgent(): BluetoothAgent {
+        return this.agent;
+    }
+
     func_dispose() {
         if (this.discovering) {
             this.stopDiscovery();
