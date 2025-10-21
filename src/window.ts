@@ -187,7 +187,6 @@ export class Window extends Adw.ApplicationWindow {
         row.add_suffix(statusLabel);
         row.add_suffix(spinner);
 
-        // Bind spinner visibility to device connecting property
         device.bind_property(
             "connecting",
             spinner,
@@ -247,22 +246,30 @@ export class Window extends Adw.ApplicationWindow {
     }
 
     private async _handleDevicePair(device: Device) {
-        if (!device.paired) {
-            return;
-        }
-
         try {
-            if (device.connected) {
+            if (!device.paired) {
+                // Pair first if not paired
+                await device.pairDevice();
+                // After successful pairing, connect automatically
+                await device.connectDevice();
+            } else if (device.connected) {
+                // If connected, disconnect
                 await device.disconnectDevice();
             } else {
+                // If paired but not connected, connect
                 await device.connectDevice();
             }
         } catch (error) {
-            log(
-                `An error occured while trying to ${device.connected ? "disconnet" : "connect"} to device: ${error}`,
-            );
+            const action = !device.paired
+                ? "pair with"
+                : device.connected
+                  ? "disconnect from"
+                  : "connect to";
+
+            log(`An error occurred while trying to ${action} device: ${error}`);
+
             const toast = new Adw.Toast({
-                title: `Failed to ${device.connected ? "disconnect from" : "connect to"} ${device.alias}`,
+                title: `Failed to ${action} ${device.alias}`,
                 timeout: 3,
             });
             this._toastOverlay.add_toast(toast);
