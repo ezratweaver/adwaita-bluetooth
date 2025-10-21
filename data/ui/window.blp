@@ -4,8 +4,6 @@ using Adw 1;
 template $Gjs_Window: Adw.ApplicationWindow {
   default-width: 550;
   default-height: 500;
-  width-request: 360;
-  height-request: 294;
 
   content: Adw.ToastOverlay toast-overlay {
     child: Adw.ToolbarView {
@@ -70,14 +68,18 @@ template $Gjs_Window: Adw.ApplicationWindow {
             }
           }
 
-          Gtk.ListBox devices-list {
-            selection-mode: none;
-            margin-start: 4;
-            margin-end: 4;
+          Gtk.ScrolledWindow {
+            propagate-natural-height: true;
 
-            css-classes: [
-              "boxed-list",
-            ];
+            Gtk.ListBox devices-list {
+              selection-mode: none;
+              margin-start: 4;
+              margin-end: 4;
+
+              css-classes: [
+                "boxed-list",
+              ];
+            }
           }
         }
       };
