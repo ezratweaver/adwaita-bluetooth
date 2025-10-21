@@ -14,14 +14,14 @@ export class Device extends GObject.Object {
     private deviceProxy: Gio.DBusProxy;
 
     private _devicePath: string;
-    private _address: string = "";
-    private _alias: string = "";
-    private _blocked: boolean = false;
-    private _bonded: boolean = false;
-    private _connected: boolean = false;
-    private _name: string = "";
-    private _paired: boolean = false;
-    private _trusted: boolean = false;
+    private _address: string | undefined;
+    private _alias: string | undefined;
+    private _blocked: boolean | undefined;
+    private _bonded: boolean | undefined;
+    private _connected: boolean | undefined;
+    private _name: string | undefined;
+    private _paired: boolean | undefined;
+    private _trusted: boolean | undefined;
 
     static {
         GObject.registerClass(
@@ -112,13 +112,10 @@ export class Device extends GObject.Object {
     }
 
     private _loadProperties(): void {
-        const unpackProperty = <T>(prop: string): T => {
+        const unpackProperty = <T>(prop: string): T | undefined => {
             const value = this.deviceProxy
                 .get_cached_property(prop)
                 ?.deep_unpack() as T | undefined;
-            if (value === undefined) {
-                throw new Error(`Missing device property: ${prop}`);
-            }
             return value;
         };
 
@@ -181,23 +178,35 @@ export class Device extends GObject.Object {
     }
 
     get address(): string {
-        return this._address;
+        return this._address ?? "";
     }
 
     get alias(): string {
-        return this._alias;
+        return this._alias ?? "";
     }
 
     get blocked(): boolean {
-        return this._blocked;
+        return this._blocked ?? false;
     }
 
     get bonded(): boolean {
-        return this._bonded;
+        return this._bonded ?? false;
     }
 
     get connected(): boolean {
-        return this._connected;
+        return this._connected ?? false;
+    }
+
+    get name(): string {
+        return this._name ?? "";
+    }
+
+    get paired(): boolean {
+        return this._paired ?? false;
+    }
+
+    get trusted(): boolean {
+        return this._trusted ?? false;
     }
 
     get connectedStatus(): string {
@@ -211,17 +220,5 @@ export class Device extends GObject.Object {
         }
 
         return deviceStatus;
-    }
-
-    get name(): string {
-        return this._name;
-    }
-
-    get paired(): boolean {
-        return this._paired;
-    }
-
-    get trusted(): boolean {
-        return this._trusted;
     }
 }
