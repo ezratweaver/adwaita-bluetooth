@@ -99,14 +99,17 @@ export class Window extends Adw.ApplicationWindow {
             }
         });
 
-        for (const device of this._bluetoothManager.adapter.devices) {
-            this._addDevice(device);
-        }
+        this._bluetoothManager.adapter.devices.forEach(({ devicePath }) =>
+            this._addDevice(devicePath),
+        );
 
-        this._bluetoothManager.adapter.connect("device-added", this._addDevice);
+        this._bluetoothManager.adapter.connect(
+            "device-added",
+            (_, devicePath: string) => this._addDevice(devicePath),
+        );
         this._bluetoothManager.adapter.connect(
             "device-removed",
-            this._removeDevice,
+            (_, devicePath: string) => this._removeDevice(devicePath),
         );
     }
 
@@ -123,7 +126,14 @@ export class Window extends Adw.ApplicationWindow {
         dialog.present(this);
     };
 
-    private _addDevice(device: Device) {
+    private _addDevice(devicePath: string) {
+        const device = this._bluetoothManager.adapter?.devices.find(
+            (d) => d.devicePath === devicePath,
+        );
+        if (!device) {
+            return;
+        }
+
         const row = new Adw.ActionRow({
             name: device.devicePath,
             title: device.name,

@@ -42,7 +42,7 @@ export class Adapter extends GObject.Object {
                 },
                 Signals: {
                     "device-added": {
-                        param_types: [Device.$gtype],
+                        param_types: [GObject.TYPE_STRING],
                     },
                     "device-removed": {
                         param_types: [GObject.TYPE_STRING],
@@ -149,7 +149,7 @@ export class Adapter extends GObject.Object {
             });
         }
 
-        objectManager.connect("object-added", (_, object) => {
+        objectManager.connect("object-added", (_, object: Gio.DBusObject) => {
             const hasDeviceInterface = object.get_interface(DEVICE_INTERFACE);
 
             if (hasDeviceInterface) {
@@ -159,7 +159,7 @@ export class Adapter extends GObject.Object {
                     try {
                         newDevice = new Device({
                             systemBus: this.systemBus,
-                            devicePath: path as string,
+                            devicePath: path,
                         });
                     } catch {
                         // Device failed to load, we're not gonna throw a fit about it
@@ -168,12 +168,12 @@ export class Adapter extends GObject.Object {
 
                     this.devicePaths.push(path);
                     this.devices.push(newDevice);
-                    this.emit("device-added", newDevice);
+                    this.emit("device-added", newDevice.devicePath);
                 }
             }
         });
 
-        objectManager.connect("object-removed", (_, object) => {
+        objectManager.connect("object-removed", (_, object: Gio.DBusObject) => {
             const hasDeviceInterface = object.get_interface(DEVICE_INTERFACE);
 
             if (hasDeviceInterface) {
