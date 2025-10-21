@@ -185,47 +185,6 @@ export class Device extends GObject.Object {
         });
     }
 
-    // Getters for all properties
-    get devicePath(): string {
-        return this._devicePath;
-    }
-
-    get address(): string {
-        return this._address ?? "";
-    }
-
-    get alias(): string {
-        return this._alias ?? "";
-    }
-
-    get blocked(): boolean {
-        return this._blocked ?? false;
-    }
-
-    get bonded(): boolean {
-        return this._bonded ?? false;
-    }
-
-    get connected(): boolean {
-        return this._connected ?? false;
-    }
-
-    get name(): string {
-        return this._name ?? "";
-    }
-
-    get paired(): boolean {
-        return this._paired ?? false;
-    }
-
-    get trusted(): boolean {
-        return this._trusted ?? false;
-    }
-
-    get connecting(): boolean {
-        return this._connecting;
-    }
-
     private _setConnecting(connecting: boolean): void {
         if (this._connecting === connecting) return;
         this._connecting = connecting;
@@ -302,8 +261,10 @@ export class Device extends GObject.Object {
     public async pairDevice(): Promise<void> {
         if (this._connecting) return;
 
-        this._setConnecting(true);
         try {
+            this.agent.register();
+            this._setConnecting(true);
+
             await new Promise<void>((resolve, reject) => {
                 this.deviceProxy.call(
                     "Pair",
@@ -323,6 +284,48 @@ export class Device extends GObject.Object {
             });
         } finally {
             this._setConnecting(false);
+            this.agent.unregister();
         }
+    }
+
+    // Getters for all properties
+    get devicePath(): string {
+        return this._devicePath;
+    }
+
+    get address(): string {
+        return this._address ?? "";
+    }
+
+    get alias(): string {
+        return this._alias ?? "";
+    }
+
+    get blocked(): boolean {
+        return this._blocked ?? false;
+    }
+
+    get bonded(): boolean {
+        return this._bonded ?? false;
+    }
+
+    get connected(): boolean {
+        return this._connected ?? false;
+    }
+
+    get name(): string {
+        return this._name ?? "";
+    }
+
+    get paired(): boolean {
+        return this._paired ?? false;
+    }
+
+    get trusted(): boolean {
+        return this._trusted ?? false;
+    }
+
+    get connecting(): boolean {
+        return this._connecting;
     }
 }

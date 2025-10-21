@@ -1,7 +1,6 @@
 import Gio from "gi://Gio?version=2.0";
 import GLib from "gi://GLib?version=2.0";
 import { BLUEZ_SERVICE } from "./bluetooth.js";
-import { Device } from "./device.js";
 
 export const AGENT_INTERFACE = "org.bluez.Agent1";
 export const AGENT_MANAGER_INTERFACE = "org.bluez.AgentManager1";
@@ -59,6 +58,10 @@ export class BluetoothAgent {
     }
 
     public register(): void {
+        if (this.registrationId) {
+            throw new Error("Another device is already using agent to pair");
+        }
+
         const agentInterface =
             this.agentNodeInfo.lookup_interface(AGENT_INTERFACE);
         if (!agentInterface) {
