@@ -293,4 +293,31 @@ export class Device extends GObject.Object {
             this._setConnecting(false);
         }
     }
+
+    public async pairDevice(): Promise<void> {
+        if (this._connecting) return;
+
+        this._setConnecting(true);
+        try {
+            await new Promise<void>((resolve, reject) => {
+                this.deviceProxy.call(
+                    "Pair",
+                    null,
+                    Gio.DBusCallFlags.NONE,
+                    -1,
+                    null,
+                    (proxy, result) => {
+                        try {
+                            proxy?.call_finish(result);
+                            resolve();
+                        } catch (error) {
+                            reject(error);
+                        }
+                    },
+                );
+            });
+        } finally {
+            this._setConnecting(false);
+        }
+    }
 }
