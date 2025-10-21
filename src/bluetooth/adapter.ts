@@ -76,7 +76,6 @@ export class Adapter extends GObject.Object {
         this._loadProperties();
         this._setupPropertyChangeListener();
         this._syncSavedDevices();
-        this._sortDevices();
 
         if (this._powered) {
             this.setAdapterDiscovering();
@@ -148,9 +147,6 @@ export class Adapter extends GObject.Object {
                     }
 
                     this.devices.push(newDevice);
-                    newDevice.connect("device-changed", () => {
-                        this._sortDevices();
-                    });
 
                     this.emit("device-added", newDevice.devicePath);
                 }
@@ -232,37 +228,8 @@ export class Adapter extends GObject.Object {
                 if (device.paired) {
                     this.devices.push(device);
                 }
-
-                device.connect("device-changed", () => {
-                    this._sortDevices();
-                });
             }
         }
-    }
-
-    /*
-     * Sorts devices by priority as:
-     *
-     * 1. Connected devices first
-     * 2. Known but not connected devices second
-     * 3. Unknown/non paired devices last
-     */
-    private _sortDevices(): void {
-        this._devices.sort((a, b) => {
-            if (a.connected && !b.connected) {
-                return -1;
-            } else if (!a.connected && b.connected) {
-                return 1;
-            }
-
-            if (a.paired && !b.paired) {
-                return -1;
-            } else if (!a.paired && b.paired) {
-                return 1;
-            }
-
-            return 0;
-        });
     }
 
     private _setDiscoveringState(discovering: boolean) {

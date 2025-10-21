@@ -107,6 +107,32 @@ export class Window extends Adw.ApplicationWindow {
             }
         });
 
+        /*
+         * Sorts devices by priority as:
+         *
+         * 1. Connected devices first
+         * 2. Known but not connected devices second
+         * 3. Unknown/non paired devices last
+         */
+        this._devices_list.set_sort_func((row1, row2) => {
+            const device1 = this._bluetoothManager.adapter?.devices.find(
+                (d) => d.devicePath === row1.name,
+            );
+            const device2 = this._bluetoothManager.adapter?.devices.find(
+                (d) => d.devicePath === row2.name,
+            );
+
+            if (!device1 || !device2) return 0;
+
+            if (device1.connected && !device2.connected) return -1;
+            if (!device1.connected && device2.connected) return 1;
+
+            if (device1.paired && !device2.paired) return -1;
+            if (!device1.paired && device2.paired) return 1;
+
+            return 0;
+        });
+
         this._bluetoothManager.adapter.devices.forEach(({ devicePath }) =>
             this._addDevice(devicePath),
         );
@@ -183,6 +209,9 @@ export class Window extends Adw.ApplicationWindow {
             if (!deviceHasName && !!device.name) {
                 this._devices_list.append(row);
             }
+
+            // Trigger resort when connection status changes
+            this._devices_list.invalidate_sort();
         });
     }
 
