@@ -16,6 +16,7 @@ export class Adapter extends GObject.Object {
     private adapterPath: string;
     private devicePaths: string[] = [];
     private adapterProxy: Gio.DBusProxy;
+    private discoveryTimeoutId: number | null = null;
 
     private _powered: boolean = false;
     private _discovering: boolean = false;
@@ -232,7 +233,7 @@ export class Adapter extends GObject.Object {
         this.notify("powered");
     }
 
-    private StartDiscovery() {
+    private startDiscovery() {
         this.adapterProxy.call_sync(
             "StartDiscovery",
             null,
@@ -242,7 +243,11 @@ export class Adapter extends GObject.Object {
         );
     }
 
-    private StopDiscovery() {
+    private stopDiscovery() {
+        if (this.discoveryTimeoutId) {
+            GLib.source_remove(this.discoveryTimeoutId);
+        }
+
         this.adapterProxy.call_sync(
             "StopDiscovery",
             null,
@@ -271,13 +276,17 @@ export class Adapter extends GObject.Object {
     }
 
     public setAdapterDiscovering(): void {
-        this.StartDiscovery();
+        this.startDiscovery();
 
-        GLib.timeout_add(GLib.PRIORITY_DEFAULT, 30 * 1000, () => {
-            this.StopDiscovery();
+        this.discoveryTimeoutId = GLib.timeout_add_seconds(
+            GLib.PRIORITY_DEFAULT,
+            30,
+            () => {
+                this.stopDiscovery();
 
-            return false;
-        });
+                return false;
+            },
+        );
     }
 
     get powered(): boolean {
@@ -294,7 +303,7 @@ export class Adapter extends GObject.Object {
 
     func_dispose() {
         if (this.discovering) {
-            this.StopDiscovery();
+            this.stopDiscovery();
         }
 
         super.vfunc_dispose();
