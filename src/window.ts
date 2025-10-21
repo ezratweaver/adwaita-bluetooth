@@ -190,7 +190,10 @@ export class Window extends Adw.ApplicationWindow {
         const elements = this._deviceElements.get(devicePath);
 
         if (elements) {
-            this._devices_list.remove(elements.row);
+            if (!!elements?.row.title) {
+                this._devices_list.remove(elements.row);
+            }
+
             this._deviceElements.delete(devicePath);
         }
     }
