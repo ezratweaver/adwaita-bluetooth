@@ -156,6 +156,7 @@ export class Window extends Adw.ApplicationWindow {
 
         if (deviceHasName) {
             this._devices_list.append(row);
+            this._displayedDevices.set(device.devicePath, row);
         }
 
         device.connect("device-changed", (device: Device) => {
@@ -167,8 +168,6 @@ export class Window extends Adw.ApplicationWindow {
                 this._devices_list.append(row);
             }
         });
-
-        this._displayedDevices.set(device.devicePath, row);
     }
 
     private _removeDevice(devicePath: string) {

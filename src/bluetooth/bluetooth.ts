@@ -3,6 +3,7 @@ import { Adapter, ADAPTER_INTERFACE } from "./adapter.js";
 
 export const BLUEZ_SERVICE = "org.bluez";
 
+export const DBUS_OBJECT_MANAGER = "org.freedesktop.DBus.ObjectManager";
 export const DBUS_PROPERTIES_SET = "org.freedesktop.DBus.Properties.Set";
 
 export interface ErrorPopUp {

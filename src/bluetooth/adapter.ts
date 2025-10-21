@@ -2,7 +2,11 @@ import Gio from "gi://Gio?version=2.0";
 import GObject from "gi://GObject?version=2.0";
 import GLib from "gi://GLib?version=2.0";
 import { Device, DEVICE_INTERFACE } from "./device.js";
-import { BLUEZ_SERVICE, DBUS_PROPERTIES_SET } from "./bluetooth.js";
+import {
+    BLUEZ_SERVICE,
+    DBUS_OBJECT_MANAGER,
+    DBUS_PROPERTIES_SET,
+} from "./bluetooth.js";
 
 export const ADAPTER_INTERFACE = "org.bluez.Adapter1";
 
@@ -109,89 +113,74 @@ export class Adapter extends GObject.Object {
     }
 
     private _syncSavedDevices(): void {
-        const objectManager = Gio.DBusObjectManagerClient.new_for_bus_sync(
-            Gio.BusType.SYSTEM,
-            Gio.DBusObjectManagerClientFlags.NONE,
+        this.systemBus.signal_subscribe(
             BLUEZ_SERVICE,
+            DBUS_OBJECT_MANAGER,
+            "InterfacesAdded",
             "/",
             null,
-            null,
-        );
+            Gio.DBusSignalFlags.NONE,
+            (_, _1, _2, _3, _4, parameters) => {
+                const [path, interfaces] = parameters.deep_unpack() as [
+                    string,
+                    Record<string, Record<string, GLib.Variant>>,
+                ];
 
-        for (const obj of objectManager.get_objects()) {
-            const path = obj.get_object_path();
-            if (
-                path.includes(this.adapterPath) &&
-                obj.get_interface(DEVICE_INTERFACE)
-            ) {
-                this.devicePaths.push(path);
-            }
-        }
+                if (
+                    path.includes(this.adapterPath) &&
+                    interfaces[DEVICE_INTERFACE]
+                ) {
+                    log(`New device discovered ${path}`);
 
-        for (const devicePath of this.devicePaths) {
-            let device: Device;
-            try {
-                device = new Device({
-                    devicePath: devicePath,
-                    systemBus: this.systemBus,
-                });
-            } catch (e) {
-                log(
-                    `Encountered an error while creating device ${devicePath}: ${e}`,
-                );
-                continue;
-            }
-
-            log(`Discovered ${device.devicePath} on initial device sync`);
-
-            if (device.paired) {
-                this.devices.push(device);
-            }
-
-            device.connect("device-changed", () => {
-                this._sortDevices();
-            });
-        }
-
-        objectManager.connect("object-added", (_, object: Gio.DBusObject) => {
-            const hasDeviceInterface = object.get_interface(DEVICE_INTERFACE);
-
-            if (hasDeviceInterface) {
-                const path = object.get_object_path();
-                if (path.includes(this.adapterPath)) {
                     let newDevice: Device;
                     try {
                         newDevice = new Device({
                             systemBus: this.systemBus,
                             devicePath: path,
                         });
-                    } catch {
-                        // Device failed to load, we're not gonna throw a fit about it
+                    } catch (e) {
+                        log(`Failed to create device ${path}: ${e}`);
                         return;
                     }
 
-                    log(`New device discovered ${newDevice.devicePath}`);
+                    if (!this.devicePaths.includes(path)) {
+                        this.devicePaths.push(path);
+                    }
 
-                    this.devicePaths.push(path);
                     this.devices.push(newDevice);
+                    newDevice.connect("device-changed", () => {
+                        this._sortDevices();
+                    });
+
                     this.emit("device-added", newDevice.devicePath);
                 }
-            }
-        });
+            },
+        );
 
-        objectManager.connect("object-removed", (_, object: Gio.DBusObject) => {
-            const hasDeviceInterface = object.get_interface(DEVICE_INTERFACE);
+        this.systemBus.signal_subscribe(
+            BLUEZ_SERVICE,
+            DBUS_OBJECT_MANAGER,
+            "InterfacesRemoved",
+            "/",
+            null,
+            Gio.DBusSignalFlags.NONE,
+            (_, _1, _2, _3, _4, parameters) => {
+                const [path, interfaces] = parameters.deep_unpack() as [
+                    string,
+                    string[],
+                ];
 
-            if (hasDeviceInterface) {
-                const path = object.get_object_path();
-                if (path.includes(this.adapterPath)) {
+                if (
+                    path.includes(this.adapterPath) &&
+                    interfaces.includes(DEVICE_INTERFACE)
+                ) {
+                    log(`Device getting removed ${path}`);
+
                     const deviceIndex = this.devices.findIndex(
                         (device) => device.devicePath === path,
                     );
 
                     if (deviceIndex !== -1) {
-                        log(`Device getting removed ${path}`);
-
                         this.devices.splice(deviceIndex, 1);
                         this.devicePaths = this.devicePaths.filter(
                             (p) => p !== path,
@@ -199,8 +188,56 @@ export class Adapter extends GObject.Object {
                         this.emit("device-removed", path);
                     }
                 }
+            },
+        );
+
+        const result = this.systemBus.call_sync(
+            BLUEZ_SERVICE,
+            "/",
+            DBUS_OBJECT_MANAGER,
+            "GetManagedObjects",
+            null,
+            new GLib.VariantType("(a{oa{sa{sv}}})"),
+            Gio.DBusCallFlags.NONE,
+            -1,
+            null,
+        );
+
+        const [objects] = result.deep_unpack() as [
+            Record<string, Record<string, Record<string, GLib.Variant>>>,
+        ];
+
+        for (const [path, interfaces] of Object.entries(objects)) {
+            if (
+                path.includes(this.adapterPath) &&
+                interfaces[DEVICE_INTERFACE]
+            ) {
+                this.devicePaths.push(path);
+
+                let device: Device;
+                try {
+                    device = new Device({
+                        devicePath: path,
+                        systemBus: this.systemBus,
+                    });
+                } catch (e) {
+                    log(
+                        `Encountered an error while creating device ${path}: ${e}`,
+                    );
+                    continue;
+                }
+
+                log(`Discovered ${device.devicePath} on initial device sync`);
+
+                if (device.paired) {
+                    this.devices.push(device);
+                }
+
+                device.connect("device-changed", () => {
+                    this._sortDevices();
+                });
             }
-        });
+        }
     }
 
     /*
