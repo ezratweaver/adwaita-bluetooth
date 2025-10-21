@@ -22,6 +22,7 @@ export class Device extends GObject.Object {
     private _name: string | undefined;
     private _paired: boolean | undefined;
     private _trusted: boolean | undefined;
+    private _connecting: boolean = false;
 
     static {
         GObject.registerClass(
@@ -80,6 +81,13 @@ export class Device extends GObject.Object {
                         "trusted",
                         "Trusted",
                         "Device trusted",
+                        GObject.ParamFlags.READABLE,
+                        false,
+                    ),
+                    connecting: GObject.ParamSpec.boolean(
+                        "connecting",
+                        "Connecting",
+                        "Device connecting",
                         GObject.ParamFlags.READABLE,
                         false,
                     ),
@@ -209,6 +217,16 @@ export class Device extends GObject.Object {
         return this._trusted ?? false;
     }
 
+    get connecting(): boolean {
+        return this._connecting;
+    }
+
+    private _setConnecting(connecting: boolean): void {
+        if (this._connecting === connecting) return;
+        this._connecting = connecting;
+        this.notify("connecting");
+    }
+
     get connectedStatus(): string {
         let deviceStatus: string;
         if (this.connected) {
@@ -223,42 +241,56 @@ export class Device extends GObject.Object {
     }
 
     public async connectDevice(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.deviceProxy.call(
-                "Connect",
-                null,
-                Gio.DBusCallFlags.NONE,
-                -1,
-                null,
-                (proxy, result) => {
-                    try {
-                        proxy?.call_finish(result);
-                        resolve();
-                    } catch (error) {
-                        reject(error);
-                    }
-                },
-            );
-        });
+        if (this._connecting) return; // Don't do anything if we are mid disconnect / connect
+
+        this._setConnecting(true);
+        try {
+            await new Promise<void>((resolve, reject) => {
+                this.deviceProxy.call(
+                    "Connect",
+                    null,
+                    Gio.DBusCallFlags.NONE,
+                    -1,
+                    null,
+                    (proxy, result) => {
+                        try {
+                            proxy?.call_finish(result);
+                            resolve();
+                        } catch (error) {
+                            reject(error);
+                        }
+                    },
+                );
+            });
+        } finally {
+            this._setConnecting(false);
+        }
     }
 
     public async disconnectDevice(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.deviceProxy.call(
-                "Disconnect",
-                null,
-                Gio.DBusCallFlags.NONE,
-                -1,
-                null,
-                (proxy, result) => {
-                    try {
-                        proxy?.call_finish(result);
-                        resolve();
-                    } catch (error) {
-                        reject(error);
-                    }
-                },
-            );
-        });
+        if (this._connecting) return; // Don't do anything if we are mid disconnect / connect
+
+        this._setConnecting(true);
+        try {
+            await new Promise<void>((resolve, reject) => {
+                this.deviceProxy.call(
+                    "Disconnect",
+                    null,
+                    Gio.DBusCallFlags.NONE,
+                    -1,
+                    null,
+                    (proxy, result) => {
+                        try {
+                            proxy?.call_finish(result);
+                            resolve();
+                        } catch (error) {
+                            reject(error);
+                        }
+                    },
+                );
+            });
+        } finally {
+            this._setConnecting(false);
+        }
     }
 }

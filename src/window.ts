@@ -187,6 +187,22 @@ export class Window extends Adw.ApplicationWindow {
         row.add_suffix(statusLabel);
         row.add_suffix(spinner);
 
+        // Bind spinner visibility to device connecting property
+        device.bind_property(
+            "connecting",
+            spinner,
+            "visible",
+            GObject.BindingFlags.SYNC_CREATE,
+        );
+
+        device.bind_property(
+            "connecting",
+            statusLabel,
+            "visible",
+            GObject.BindingFlags.SYNC_CREATE |
+                GObject.BindingFlags.INVERT_BOOLEAN,
+        );
+
         this._deviceElements.set(device.devicePath, {
             row,
             spinner,
@@ -235,12 +251,6 @@ export class Window extends Adw.ApplicationWindow {
             return;
         }
 
-        const elements = this._deviceElements.get(device.devicePath);
-        if (!elements) return;
-
-        elements.spinner.set_visible(true);
-        elements.statusLabel.set_visible(false);
-
         try {
             if (device.connected) {
                 await device.disconnectDevice();
@@ -256,9 +266,6 @@ export class Window extends Adw.ApplicationWindow {
                 timeout: 3,
             });
             this._toastOverlay.add_toast(toast);
-        } finally {
-            elements.spinner.set_visible(false);
-            elements.statusLabel.set_visible(true);
         }
     }
 
