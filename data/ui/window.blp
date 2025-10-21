@@ -7,7 +7,7 @@ template $Gjs_Window: Adw.ApplicationWindow {
   width-request: 360;
   height-request: 294;
 
-  content: Adw.ToastOverlay toastOverlay {
+  content: Adw.ToastOverlay toast-overlay {
     child: Adw.ToolbarView {
       [top]
       Adw.HeaderBar {
@@ -51,6 +51,7 @@ template $Gjs_Window: Adw.ApplicationWindow {
           orientation: vertical;
           valign: start;
           margin-top: 20;
+          margin-bottom: 40;
           margin-start: 30;
           margin-end: 30;
           hexpand: true;
