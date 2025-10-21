@@ -1,6 +1,5 @@
 import Gio from "gi://Gio";
 import { Adapter, ADAPTER_INTERFACE } from "./adapter.js";
-import { BluetoothAgent } from "./agent.js";
 
 export const BLUEZ_SERVICE = "org.bluez";
 
@@ -15,12 +14,10 @@ export interface ErrorPopUp {
 export class BluetoothManager {
     private systemBus: Gio.DBusConnection;
     private _adapter: Adapter | null = null;
-    private _agent: BluetoothAgent | null = null;
 
     constructor() {
         this.systemBus = Gio.bus_get_sync(Gio.BusType.SYSTEM, null);
         this._initialize();
-        this._setupAgent();
     }
 
     private _initialize(): void {
@@ -70,29 +67,7 @@ export class BluetoothManager {
         return this._adapter;
     }
 
-    private _setupAgent(): void {
-        this._agent = new BluetoothAgent({
-            systemBus: this.systemBus,
-        });
-
-        try {
-            this._agent.register();
-            log("Bluetooth pairing agent registered successfully");
-        } catch (error) {
-            log(`Failed to register pairing agent: ${error}`);
-            this._agent = null;
-        }
-    }
-
-    get agent(): BluetoothAgent | null {
-        return this._agent;
-    }
-
     public destroy(): void {
-        if (this._agent) {
-            this._agent.unregister();
-            this._agent = null;
-        }
         this._adapter = null;
     }
 }
