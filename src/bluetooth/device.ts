@@ -221,4 +221,44 @@ export class Device extends GObject.Object {
 
         return deviceStatus;
     }
+
+    public async connectDevice(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.deviceProxy.call(
+                "Connect",
+                null,
+                Gio.DBusCallFlags.NONE,
+                -1,
+                null,
+                (proxy, result) => {
+                    try {
+                        proxy?.call_finish(result);
+                        resolve();
+                    } catch (error) {
+                        reject(error);
+                    }
+                },
+            );
+        });
+    }
+
+    public async disconnectDevice(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.deviceProxy.call(
+                "Disconnect",
+                null,
+                Gio.DBusCallFlags.NONE,
+                -1,
+                null,
+                (proxy, result) => {
+                    try {
+                        proxy?.call_finish(result);
+                        resolve();
+                    } catch (error) {
+                        reject(error);
+                    }
+                },
+            );
+        });
+    }
 }

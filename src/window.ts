@@ -14,6 +14,8 @@ export class Window extends Adw.ApplicationWindow {
     private _bluetoothManager: BluetoothManager;
 
     private _displayedDevices: Map<string, Adw.ActionRow> = new Map();
+    private _deviceSpinners: Map<string, Adw.Spinner> = new Map();
+    private _deviceConnectionStatus: Map<string, Gtk.Label> = new Map();
 
     static {
         GObject.registerClass(
@@ -145,14 +147,25 @@ export class Window extends Adw.ApplicationWindow {
         const icon = new Gtk.Image({
             icon_name: "bluetooth-active-symbolic",
         });
-
         row.add_prefix(icon);
 
+        // status label
         const statusLabel = new Gtk.Label({
             label: device.connectedStatus,
         });
-
+        this._deviceConnectionStatus.set(device.devicePath, statusLabel);
         row.add_suffix(statusLabel);
+
+        // Spinner
+        const spinner = new Adw.Spinner({
+            visible: false,
+        });
+        this._deviceSpinners.set(device.devicePath, spinner);
+        row.add_suffix(spinner);
+
+        row.connect("activated", () => {
+            this._handleDevicePair(device);
+        });
 
         if (deviceHasName) {
             this._devices_list.append(row);
@@ -176,6 +189,41 @@ export class Window extends Adw.ApplicationWindow {
         if (row) this._devices_list.remove(row);
 
         this._displayedDevices.delete(devicePath);
+        this._deviceSpinners.delete(devicePath);
+    }
+
+    private async _handleDevicePair(device: Device) {
+        if (!device.paired) {
+            return;
+        }
+
+        const spinner = this._deviceSpinners.get(device.devicePath);
+        if (!spinner) return;
+
+        spinner.set_visible(true);
+
+        const connectionStatus = this._deviceConnectionStatus.get(
+            device.devicePath,
+        );
+        if (!connectionStatus) return;
+
+        connectionStatus.set_visible(false);
+
+        try {
+            if (device.connected) {
+                await device.disconnectDevice();
+            } else {
+                await device.connectDevice();
+            }
+        } catch (error) {
+            this._showError({
+                title: "Connection Error",
+                description: `Failed to ${device.connected ? "disconnect from" : "connect to"} ${device.alias}: ${error}`,
+            });
+        } finally {
+            spinner.set_visible(false);
+            connectionStatus.set_visible(true);
+        }
     }
 
     vfunc_close_request(): boolean {
