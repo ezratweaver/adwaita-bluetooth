@@ -236,11 +236,14 @@ export class Window extends Adw.ApplicationWindow {
         const elements = this._deviceElements.get(devicePath);
 
         if (elements) {
-            try {
-                // Try to remove it
-                this._devices_list.remove(elements.row);
-            } catch {
-                // It doesn't exist then
+            // Check if the row is actually a child before removing
+            const parent = elements.row.get_parent();
+            if (parent === this._devices_list) {
+                try {
+                    this._devices_list.remove(elements.row);
+                } catch (error) {
+                    log(`Error removing device row: ${error}`);
+                }
             }
 
             this._deviceElements.delete(devicePath);
