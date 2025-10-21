@@ -248,6 +248,9 @@ export class Window extends Adw.ApplicationWindow {
                 await device.connectDevice();
             }
         } catch (error) {
+            log(
+                `An error occured while trying to ${device.connected ? "disconnet" : "connect"} to device: ${error}`,
+            );
             const toast = new Adw.Toast({
                 title: `Failed to ${device.connected ? "disconnect from" : "connect to"} ${device.alias}`,
                 timeout: 3,
