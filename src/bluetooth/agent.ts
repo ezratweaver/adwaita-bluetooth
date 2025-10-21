@@ -135,20 +135,23 @@ export class BluetoothAgent {
             try {
                 switch (methodName) {
                     case "RequestPinCode": {
-                        // TODO: Implement PIN code input dialog
+                        // TODO: Implement 4 digit pin code (string) input dialog for user to input code
                         invocation.return_dbus_error(
                             "org.bluez.Error.Rejected",
                             "PIN request not implemented yet",
                         );
                         break;
                     }
-                    case "DisplayPinCode": {
-                        // TODO: Implement PIN code display dialog
-                        invocation.return_value(null);
+                    case "RequestPasskey": {
+                        // TODO: Implement 6 digit passkey (integer) input dialog for user to input code
+                        invocation.return_dbus_error(
+                            "org.bluez.Error.Rejected",
+                            "Passkey request not implemented yet",
+                        );
                         break;
                     }
-                    case "RequestPasskey": {
-                        // TODO: Implement passkey input dialog
+                    case "DisplayPinCode": {
+                        // TODO: Implement PIN code display dialog to show to user
                         invocation.return_dbus_error(
                             "org.bluez.Error.Rejected",
                             "Passkey request not implemented yet",
@@ -156,26 +159,35 @@ export class BluetoothAgent {
                         break;
                     }
                     case "DisplayPasskey": {
-                        // TODO: Implement passkey display dialog
-                        invocation.return_value(null);
+                        // TODO: Implement passkey display dialog to show to user
+                        invocation.return_dbus_error(
+                            "org.bluez.Error.Rejected",
+                            "Passkey request not implemented yet",
+                        );
+                        break;
+                    }
+                    case "RequestAuthorization": {
+                        // TODO: Implement pop-up for devices to request pairing, give a yes or no for user to accept / decline
+                        invocation.return_dbus_error(
+                            "org.bluez.Error.Rejected",
+                            "Passkey request not implemented yet",
+                        );
                         break;
                     }
                     case "RequestConfirmation": {
+                        // TODO: Check device to see if bluetooth implementation is Just Works or Numeric Comparison
                         // Auto-confirm for devices that support it
                         invocation.return_value(null);
                         break;
                     }
-                    case "RequestAuthorization": {
-                        // Auto-authorize pairing requests
-                        invocation.return_value(null);
-                        break;
-                    }
                     case "AuthorizeService": {
-                        // Auto-authorize service connections
+                        // When a bluetooth peripheral requests for access to a specifc service, this gets called
+                        // Most modern bluetooth managers accept by default, so thats what we'll do.
                         invocation.return_value(null);
                         break;
                     }
                     case "Cancel": {
+                        // TODO: Update state on pairing cancelling
                         invocation.return_value(null);
                         break;
                     }
