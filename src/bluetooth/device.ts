@@ -1,17 +1,20 @@
 import Gio from "gi://Gio?version=2.0";
 import GObject from "gi://GObject?version=2.0";
 import { BLUEZ_SERVICE } from "./bluetooth.js";
+import { BluetoothAgent } from "./agent.js";
 
 export const DEVICE_INTERFACE = "org.bluez.Device1";
 
 interface DeviceProps {
     devicePath: string;
     systemBus: Gio.DBusConnection;
+    agent: BluetoothAgent;
 }
 
 export class Device extends GObject.Object {
     private systemBus: Gio.DBusConnection;
     private deviceProxy: Gio.DBusProxy;
+    private agent: BluetoothAgent;
 
     private _devicePath: string;
     private _address: string | undefined;
@@ -114,6 +117,8 @@ export class Device extends GObject.Object {
             DEVICE_INTERFACE,
             null,
         );
+
+        this.agent = props.agent;
 
         this._loadProperties();
         this._setupPropertyChangeListener();

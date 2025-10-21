@@ -1,6 +1,7 @@
 import Gio from "gi://Gio?version=2.0";
 import GLib from "gi://GLib?version=2.0";
 import { BLUEZ_SERVICE } from "./bluetooth.js";
+import { Device } from "./device.js";
 
 export const AGENT_INTERFACE = "org.bluez.Agent1";
 export const AGENT_MANAGER_INTERFACE = "org.bluez.AgentManager1";
@@ -176,7 +177,8 @@ export class BluetoothAgent {
                     }
                     case "RequestConfirmation": {
                         // TODO: Check device to see if bluetooth implementation is Just Works or Numeric Comparison
-                        // Auto-confirm for devices that support it
+
+                        // Currently assuming Just Works
                         invocation.return_value(null);
                         break;
                     }

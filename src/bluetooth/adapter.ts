@@ -7,6 +7,7 @@ import {
     DBUS_OBJECT_MANAGER,
     DBUS_PROPERTIES_SET,
 } from "./bluetooth.js";
+import { BluetoothAgent } from "./agent.js";
 
 export const ADAPTER_INTERFACE = "org.bluez.Adapter1";
 
@@ -20,6 +21,8 @@ export class Adapter extends GObject.Object {
     private adapterPath: string;
     private devicePaths: string[] = [];
     private adapterProxy: Gio.DBusProxy;
+    private agent: BluetoothAgent;
+
     private discoveryTimeoutId: number | null = null;
 
     private _powered: boolean = false;
@@ -72,6 +75,8 @@ export class Adapter extends GObject.Object {
             ADAPTER_INTERFACE,
             null,
         );
+
+        this.agent = new BluetoothAgent({ systemBus: this.systemBus });
 
         this._loadProperties();
         this._setupPropertyChangeListener();
@@ -135,6 +140,7 @@ export class Adapter extends GObject.Object {
                     try {
                         newDevice = new Device({
                             systemBus: this.systemBus,
+                            agent: this.agent,
                             devicePath: path,
                         });
                     } catch (e) {
@@ -214,6 +220,7 @@ export class Adapter extends GObject.Object {
                 try {
                     device = new Device({
                         devicePath: path,
+                        agent: this.agent,
                         systemBus: this.systemBus,
                     });
                 } catch (e) {
