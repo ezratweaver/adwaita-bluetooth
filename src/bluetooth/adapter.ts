@@ -141,6 +141,9 @@ export class Adapter extends GObject.Object {
                 );
                 continue;
             }
+
+            log(`Discovered ${device.devicePath} on initial device sync`);
+
             if (device.paired) {
                 this.devices.push(device);
             }
@@ -167,6 +170,8 @@ export class Adapter extends GObject.Object {
                         return;
                     }
 
+                    log(`New device discovered ${newDevice.devicePath}`);
+
                     this.devicePaths.push(path);
                     this.devices.push(newDevice);
                     this.emit("device-added", newDevice.devicePath);
@@ -185,6 +190,8 @@ export class Adapter extends GObject.Object {
                     );
 
                     if (deviceIndex !== -1) {
+                        log(`Device getting removed ${path}`);
+
                         this.devices.splice(deviceIndex, 1);
                         this.devicePaths = this.devicePaths.filter(
                             (p) => p !== path,

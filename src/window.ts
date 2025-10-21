@@ -134,9 +134,11 @@ export class Window extends Adw.ApplicationWindow {
             return;
         }
 
+        const deviceHasName = !!device.name;
+
         const row = new Adw.ActionRow({
             name: device.devicePath,
-            title: device.name,
+            title: device.alias,
             activatable: true,
         });
 
@@ -152,12 +154,18 @@ export class Window extends Adw.ApplicationWindow {
 
         row.add_suffix(statusLabel);
 
-        this._devices_list.append(row);
+        if (deviceHasName) {
+            this._devices_list.append(row);
+        }
 
         device.connect("device-changed", (device: Device) => {
-            row.set_title(device.name);
+            row.set_title(device.alias);
 
             statusLabel.set_label(device.connectedStatus);
+
+            if (!deviceHasName && !!device.name) {
+                this._devices_list.append(row);
+            }
         });
 
         this._displayedDevices.set(device.devicePath, row);
