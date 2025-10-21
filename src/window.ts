@@ -144,11 +144,6 @@ export class Window extends Adw.ApplicationWindow {
             activatable: true,
         });
 
-        const icon = new Gtk.Image({
-            icon_name: "bluetooth-active-symbolic",
-        });
-        row.add_prefix(icon);
-
         // status label
         const statusLabel = new Gtk.Label({
             label: device.connectedStatus,
