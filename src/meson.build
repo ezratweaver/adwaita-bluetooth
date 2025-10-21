@@ -5,7 +5,8 @@ sources = files(
   'window.ts',
   'bluetooth/bluetooth.ts',
   'bluetooth/adapter.ts',
-  'bluetooth/device.ts'
+  'bluetooth/device.ts',
+  'bluetooth/agent.ts'
 )
 
 tsc_out = meson.project_build_root() / 'tsc-out'
