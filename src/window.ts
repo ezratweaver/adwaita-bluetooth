@@ -209,7 +209,9 @@ export class Window extends Adw.ApplicationWindow {
         });
 
         row.connect("activated", () => {
-            this._handleDevicePair(device);
+            if (!device.connecting) {
+                this._handleDevicePair(device);
+            }
         });
 
         if (deviceHasName) {
