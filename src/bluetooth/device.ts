@@ -214,7 +214,7 @@ export class Device extends GObject.Object {
         if (this.connected) {
             deviceStatus = "Connected";
         } else if (!this.connected && this.paired) {
-            deviceStatus = "Not Connected";
+            deviceStatus = "Disconnected";
         } else {
             deviceStatus = "Not Set Up";
         }
