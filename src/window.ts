@@ -10,6 +10,7 @@ export class Window extends Adw.ApplicationWindow {
     private _enabled_state!: Gtk.Box;
     private _devices_list!: Gtk.ListBox;
     private _discovering_spinner!: Adw.Spinner;
+    private _toastOverlay!: Adw.ToastOverlay;
 
     private _bluetoothManager: BluetoothManager;
 
@@ -212,10 +213,11 @@ export class Window extends Adw.ApplicationWindow {
                 await device.connectDevice();
             }
         } catch (error) {
-            this._showError({
-                title: "Connection Error",
-                description: `Failed to ${device.connected ? "disconnect from" : "connect to"} ${device.alias}: ${error}`,
+            const toast = new Adw.Toast({
+                title: `Failed to ${device.connected ? "disconnect from" : "connect to"} ${device.alias}`,
+                timeout: 3,
             });
+            this._toastOverlay.add_toast(toast);
         } finally {
             elements.spinner.set_visible(false);
             elements.statusLabel.set_visible(true);
