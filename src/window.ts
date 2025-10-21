@@ -219,8 +219,11 @@ export class Window extends Adw.ApplicationWindow {
         const elements = this._deviceElements.get(devicePath);
 
         if (elements) {
-            if (!!elements?.row.title) {
+            try {
+                // Try to remove it
                 this._devices_list.remove(elements.row);
+            } catch {
+                // It doesn't exist then
             }
 
             this._deviceElements.delete(devicePath);
