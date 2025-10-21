@@ -13,9 +13,14 @@ export class Window extends Adw.ApplicationWindow {
 
     private _bluetoothManager: BluetoothManager;
 
-    private _displayedDevices: Map<string, Adw.ActionRow> = new Map();
-    private _deviceSpinners: Map<string, Adw.Spinner> = new Map();
-    private _deviceConnectionStatus: Map<string, Gtk.Label> = new Map();
+    private _deviceElements: Map<
+        string,
+        {
+            row: Adw.ActionRow;
+            spinner: Adw.Spinner;
+            statusLabel: Gtk.Label;
+        }
+    > = new Map();
 
     static {
         GObject.registerClass(
@@ -144,19 +149,22 @@ export class Window extends Adw.ApplicationWindow {
             activatable: true,
         });
 
-        // status label
         const statusLabel = new Gtk.Label({
             label: device.connectedStatus,
         });
-        this._deviceConnectionStatus.set(device.devicePath, statusLabel);
-        row.add_suffix(statusLabel);
 
-        // Spinner
         const spinner = new Adw.Spinner({
             visible: false,
         });
-        this._deviceSpinners.set(device.devicePath, spinner);
+
+        row.add_suffix(statusLabel);
         row.add_suffix(spinner);
+
+        this._deviceElements.set(device.devicePath, {
+            row,
+            spinner,
+            statusLabel,
+        });
 
         row.connect("activated", () => {
             this._handleDevicePair(device);
@@ -164,7 +172,6 @@ export class Window extends Adw.ApplicationWindow {
 
         if (deviceHasName) {
             this._devices_list.append(row);
-            this._displayedDevices.set(device.devicePath, row);
         }
 
         device.connect("device-changed", (device: Device) => {
@@ -179,12 +186,12 @@ export class Window extends Adw.ApplicationWindow {
     }
 
     private _removeDevice(devicePath: string) {
-        const row = this._displayedDevices.get(devicePath);
+        const elements = this._deviceElements.get(devicePath);
 
-        if (row) this._devices_list.remove(row);
-
-        this._displayedDevices.delete(devicePath);
-        this._deviceSpinners.delete(devicePath);
+        if (elements) {
+            this._devices_list.remove(elements.row);
+            this._deviceElements.delete(devicePath);
+        }
     }
 
     private async _handleDevicePair(device: Device) {
@@ -192,17 +199,11 @@ export class Window extends Adw.ApplicationWindow {
             return;
         }
 
-        const spinner = this._deviceSpinners.get(device.devicePath);
-        if (!spinner) return;
+        const elements = this._deviceElements.get(device.devicePath);
+        if (!elements) return;
 
-        spinner.set_visible(true);
-
-        const connectionStatus = this._deviceConnectionStatus.get(
-            device.devicePath,
-        );
-        if (!connectionStatus) return;
-
-        connectionStatus.set_visible(false);
+        elements.spinner.set_visible(true);
+        elements.statusLabel.set_visible(false);
 
         try {
             if (device.connected) {
@@ -216,8 +217,8 @@ export class Window extends Adw.ApplicationWindow {
                 description: `Failed to ${device.connected ? "disconnect from" : "connect to"} ${device.alias}: ${error}`,
             });
         } finally {
-            spinner.set_visible(false);
-            connectionStatus.set_visible(true);
+            elements.spinner.set_visible(false);
+            elements.statusLabel.set_visible(true);
         }
     }
 
