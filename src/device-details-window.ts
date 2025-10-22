@@ -11,6 +11,7 @@ export class DeviceDetailsWindow extends Adw.Window {
             {
                 Template:
                     "resource:///com/eweaver/adw_bluetooth/ui/device-details.ui",
+                InternalChildren: [],
             },
             this,
         );
@@ -19,7 +20,6 @@ export class DeviceDetailsWindow extends Adw.Window {
     constructor(device: Device, parent: Gtk.Window) {
         super({
             transientFor: parent,
-            title: `${device.alias} Details`,
         });
 
         this.device = device;

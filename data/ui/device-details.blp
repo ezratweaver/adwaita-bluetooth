@@ -5,4 +5,11 @@ template $Gjs_DeviceDetailsWindow: Adw.Window {
   default-width: 420;
   default-height: 550;
   modal: true;
+
+  content: Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      show-title: false;
+    }
+  };
 }
