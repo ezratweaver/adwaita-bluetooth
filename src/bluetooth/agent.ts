@@ -187,11 +187,8 @@ export class BluetoothAgent extends GObject.Object {
                             parameters.deep_unpack() as [string, number];
                         const requestId = `confirm-${Date.now()}`;
 
-                        // Store the invocation for later response
                         this.pendingRequests.set(requestId, invocation);
 
-                        // Emit signal for UI to handle - always show confirmation dialog
-                        // The UI can decide whether to show Just Works or Numeric Comparison dialog
                         this.emit(
                             "confirmation-request",
                             devicePath,
@@ -220,6 +217,7 @@ export class BluetoothAgent extends GObject.Object {
                         break;
                 }
             } catch (error) {
+                this.unregister();
                 invocation.return_dbus_error(
                     "org.bluez.Error.Failed",
                     `Agent error: ${error}`,
@@ -227,13 +225,7 @@ export class BluetoothAgent extends GObject.Object {
             }
         };
 
-        handleAsync().catch((error) => {
-            log(`Agent method call error: ${error}`);
-            invocation.return_dbus_error(
-                "org.bluez.Error.Failed",
-                `Agent error: ${error}`,
-            );
-        });
+        handleAsync();
     }
 
     public confirmPairing(requestId: string): void {
