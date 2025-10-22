@@ -371,6 +371,7 @@ export class Device extends GObject.Object {
                 );
             });
         } finally {
+            this.agent.unregister();
             this._setConnecting(false);
         }
     }

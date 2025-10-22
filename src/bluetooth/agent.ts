@@ -233,8 +233,6 @@ export class BluetoothAgent extends GObject.Object {
         if (invocation) {
             invocation.return_value(null);
             this.pendingRequests.delete(requestId);
-
-            this.unregister();
         }
     }
 
@@ -246,8 +244,6 @@ export class BluetoothAgent extends GObject.Object {
                 "Pairing confirmation canceled by user",
             );
             this.pendingRequests.delete(requestId);
-
-            this.unregister();
         }
     }
 }
