@@ -66,5 +66,35 @@ export class DeviceDetailsWindow extends Adw.Window {
             }
             return false;
         });
+
+        this._forget_button.connect("activated", () => {
+            this.showForgetDialog();
+        });
+    }
+
+    private showForgetDialog(): void {
+        const deviceName =
+            this.device.alias || this.device.name || this.device.address;
+
+        const dialog = new Adw.AlertDialog({
+            heading: "Forget Device?",
+            body: `"${deviceName}" will be removed from your saved devices. You will have to set it up again to use it.`,
+        });
+
+        dialog.add_response("cancel", "Cancel");
+        dialog.add_response("forget", "Forget");
+        dialog.set_response_appearance(
+            "forget",
+            Adw.ResponseAppearance.DESTRUCTIVE,
+        );
+
+        dialog.connect("response", (_, response) => {
+            if (response === "forget") {
+                // TODO: Implement device removal
+                this.close();
+            }
+        });
+
+        dialog.present(this);
     }
 }
