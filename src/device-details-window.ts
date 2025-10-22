@@ -39,5 +39,21 @@ export class DeviceDetailsWindow extends Adw.Window {
         this._paired_row.set_subtitle(device.paired ? "Yes" : "No");
         this._type_row.set_subtitle("N/A");
         this._address_row.set_subtitle(device.address);
+
+        this.device.bind_property(
+            "connected",
+            this._connection_switch,
+            "active",
+            GObject.BindingFlags.SYNC_CREATE,
+        );
+
+        this._connection_switch.connect("state-set", (_, state) => {
+            if (state && !device.connected) {
+                device.connectDevice();
+            } else if (!state && device.connected) {
+                device.disconnectDevice();
+            }
+            return false;
+        });
     }
 }
