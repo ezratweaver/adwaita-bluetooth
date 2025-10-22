@@ -1,5 +1,8 @@
 gsettings_schema = 'com.eweaver.adw_bluetooth.gschema.xml'
 
+# Compile schemas for development
+gnome.compile_schemas(depend_files: gsettings_schema)
+
 # Install GSettings schema
 install_data(gsettings_schema,
   install_dir: join_paths(get_option('datadir'), 'glib-2.0/schemas')
