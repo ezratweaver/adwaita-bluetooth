@@ -305,6 +305,7 @@ export class Window extends Adw.ApplicationWindow {
     private async _handleDevicePair(device: Device) {
         try {
             if (!device.paired) {
+                // Stop discovery while pairing/connecting
                 this._bluetoothManager.adapter?.stopDiscovery();
                 // Pair first if not paired
                 await device.pairDevice();
@@ -318,6 +319,12 @@ export class Window extends Adw.ApplicationWindow {
                 await device.connectDevice();
             }
         } catch (error) {
+            if (!device.paired || device.connected) {
+                // User failed to connect to whatever device so lets start
+                // discovering again so they can do something else
+                this._bluetoothManager.adapter?.startDiscovery();
+            }
+
             const action = !device.paired
                 ? "pair with"
                 : device.connected
