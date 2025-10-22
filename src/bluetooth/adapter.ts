@@ -307,6 +307,16 @@ export class Adapter extends GObject.Object {
         );
     }
 
+    public removeDevice(devicePath: string): void {
+        this.adapterProxy.call_sync(
+            "RemoveDevice",
+            new GLib.Variant("(o)", [devicePath]),
+            Gio.DBusCallFlags.NONE,
+            -1,
+            null,
+        );
+    }
+
     get powered(): boolean {
         return this._powered;
     }
