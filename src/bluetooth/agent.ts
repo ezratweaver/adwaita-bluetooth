@@ -105,7 +105,7 @@ export class BluetoothAgent extends GObject.Object {
             "/org/bluez",
             AGENT_MANAGER_INTERFACE,
             "RegisterAgent",
-            new GLib.Variant("(os)", [this.agentPath, "NoInputNoOutput"]),
+            new GLib.Variant("(os)", [this.agentPath, "DisplayYesNo"]),
             null,
             Gio.DBusCallFlags.NONE,
             -1,
