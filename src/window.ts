@@ -3,6 +3,7 @@ import GObject from "gi://GObject";
 import Gtk from "gi://Gtk?version=4.0";
 import { BluetoothManager, ErrorPopUp } from "./bluetooth/bluetooth.js";
 import { Device } from "./bluetooth/device.js";
+import { DeviceDetailsWindow } from "./device-details-window.js";
 
 export class Window extends Adw.ApplicationWindow {
     private _bluetooth_toggle!: Gtk.Switch;
@@ -10,7 +11,7 @@ export class Window extends Adw.ApplicationWindow {
     private _enabled_state!: Gtk.Box;
     private _devices_list!: Gtk.ListBox;
     private _discovering_spinner!: Adw.Spinner;
-    private _toastOverlay!: Adw.ToastOverlay;
+    private _toast_overlay!: Adw.ToastOverlay;
 
     private _bluetoothManager: BluetoothManager;
 
@@ -28,7 +29,7 @@ export class Window extends Adw.ApplicationWindow {
             {
                 Template: "resource:///com/eweaver/adw_bluetooth/ui/window.ui",
                 InternalChildren: [
-                    "toastOverlay",
+                    "toast-overlay",
                     "bluetooth-toggle",
                     "disabled-state",
                     "enabled-state",
@@ -273,6 +274,11 @@ export class Window extends Adw.ApplicationWindow {
         dialog.present(this);
     }
 
+    private _showDeviceDetails(device: Device) {
+        const detailsWindow = new DeviceDetailsWindow(device, this);
+        detailsWindow.present();
+    }
+
     private _addDevice(devicePath: string) {
         const device = this._bluetoothManager.adapter?.devices.find(
             (d) => d.devicePath === devicePath,
@@ -323,7 +329,11 @@ export class Window extends Adw.ApplicationWindow {
 
         row.connect("activated", () => {
             if (!device.connecting) {
-                this._handleDevicePair(device);
+                if (device.paired) {
+                    this._showDeviceDetails(device);
+                } else {
+                    this._handleDevicePair(device);
+                }
             }
         });
 
@@ -390,7 +400,7 @@ export class Window extends Adw.ApplicationWindow {
                 title: `Failed to ${action} ${device.alias}`,
                 timeout: 3,
             });
-            this._toastOverlay.add_toast(toast);
+            this._toast_overlay.add_toast(toast);
         }
     }
 

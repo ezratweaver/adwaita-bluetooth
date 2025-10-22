@@ -3,6 +3,7 @@ gnome = import('gnome')
 sources = files(
   'main.ts',
   'window.ts',
+  'device-details-window.ts',
   'bluetooth/bluetooth.ts',
   'bluetooth/adapter.ts',
   'bluetooth/device.ts',
