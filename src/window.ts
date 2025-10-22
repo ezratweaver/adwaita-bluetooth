@@ -275,7 +275,11 @@ export class Window extends Adw.ApplicationWindow {
     }
 
     private _showDeviceDetails(device: Device) {
-        const detailsWindow = new DeviceDetailsWindow(device, this);
+        const detailsWindow = new DeviceDetailsWindow(
+            device,
+            this._bluetoothManager.adapter!,
+            this,
+        );
         detailsWindow.present();
     }
 

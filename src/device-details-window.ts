@@ -2,10 +2,11 @@ import Adw from "gi://Adw";
 import GObject from "gi://GObject";
 import Gtk from "gi://Gtk?version=4.0";
 import { Device } from "./bluetooth/device.js";
-import GLib from "gi://GLib?version=2.0";
+import { Adapter } from "./bluetooth/adapter.js";
 
 export class DeviceDetailsWindow extends Adw.Window {
     private device: Device;
+    private adapter: Adapter;
     private _connection_switch!: Gtk.Switch;
     private _paired_row!: Adw.ActionRow;
     private _type_row!: Adw.ActionRow;
@@ -33,12 +34,13 @@ export class DeviceDetailsWindow extends Adw.Window {
         );
     }
 
-    constructor(device: Device, parent: Gtk.Window) {
+    constructor(device: Device, adapter: Adapter, parent: Gtk.Window) {
         super({
             transientFor: parent,
         });
 
         this.device = device;
+        this.adapter = adapter;
 
         this._paired_row.set_subtitle(device.paired ? "Yes" : "No");
         this._type_row.set_subtitle(device.deviceType);
@@ -90,7 +92,7 @@ export class DeviceDetailsWindow extends Adw.Window {
 
         dialog.connect("response", (_, response) => {
             if (response === "forget") {
-                // TODO: Implement device removal
+                this.adapter.removeDevice(this.device.devicePath);
                 this.close();
             }
         });
