@@ -11,6 +11,8 @@ export class DeviceDetailsWindow extends Adw.Window {
     private _type_row!: Adw.ActionRow;
     private _address_row!: Adw.ActionRow;
     private _forget_button!: Adw.ButtonRow;
+    private _device_icon!: Gtk.Image;
+    private _device_name!: Gtk.Label;
 
     static {
         GObject.registerClass(
@@ -23,6 +25,8 @@ export class DeviceDetailsWindow extends Adw.Window {
                     "type_row",
                     "address_row",
                     "forget_button",
+                    "device_icon",
+                    "device_name",
                 ],
             },
             this,
@@ -39,6 +43,13 @@ export class DeviceDetailsWindow extends Adw.Window {
         this._paired_row.set_subtitle(device.paired ? "Yes" : "No");
         this._type_row.set_subtitle(device.deviceType);
         this._address_row.set_subtitle(device.address);
+
+        this._device_icon.set_from_icon_name(
+            device.icon || "bluetooth-symbolic",
+        );
+        this._device_name.set_text(
+            device.alias || device.name || device.address,
+        );
 
         this.device.bind_property(
             "connected",
