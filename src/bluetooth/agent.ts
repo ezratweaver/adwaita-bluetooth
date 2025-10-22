@@ -24,6 +24,13 @@ export class BluetoothAgent extends GObject.Object {
                     "pin-request": {
                         param_types: [GObject.TYPE_STRING, GObject.TYPE_STRING],
                     },
+                    "confirmation-request": {
+                        param_types: [
+                            GObject.TYPE_STRING,
+                            GObject.TYPE_STRING,
+                            GObject.TYPE_UINT,
+                        ],
+                    },
                 },
             },
             this,
@@ -155,12 +162,14 @@ export class BluetoothAgent extends GObject.Object {
             try {
                 switch (methodName) {
                     case "RequestPinCode": {
-                        const [devicePath] = parameters.deep_unpack() as [string];
+                        const [devicePath] = parameters.deep_unpack() as [
+                            string,
+                        ];
                         const requestId = `pin-${Date.now()}`;
-                        
+
                         // Store the invocation for later response
                         this.pendingRequests.set(requestId, invocation);
-                        
+
                         // Emit signal for UI to handle
                         this.emit("pin-request", devicePath, requestId);
                         break;
@@ -198,10 +207,21 @@ export class BluetoothAgent extends GObject.Object {
                         break;
                     }
                     case "RequestConfirmation": {
-                        // TODO: Check device to see if bluetooth implementation is Just Works or Numeric Comparison
+                        const [devicePath, passkey] =
+                            parameters.deep_unpack() as [string, number];
+                        const requestId = `confirm-${Date.now()}`;
 
-                        // Currently assuming Just Works
-                        invocation.return_value(null);
+                        // Store the invocation for later response
+                        this.pendingRequests.set(requestId, invocation);
+
+                        // Emit signal for UI to handle - always show confirmation dialog
+                        // The UI can decide whether to show Just Works or Numeric Comparison dialog
+                        this.emit(
+                            "confirmation-request",
+                            devicePath,
+                            requestId,
+                            passkey,
+                        );
                         break;
                     }
                     case "AuthorizeService": {
@@ -244,8 +264,7 @@ export class BluetoothAgent extends GObject.Object {
         if (invocation) {
             invocation.return_value(new GLib.Variant("(s)", [pin]));
             this.pendingRequests.delete(requestId);
-            
-            // Unregister agent after PIN is provided
+
             this.unregister();
         }
     }
@@ -258,8 +277,30 @@ export class BluetoothAgent extends GObject.Object {
                 "PIN request canceled by user",
             );
             this.pendingRequests.delete(requestId);
-            
-            // Unregister agent after cancellation
+
+            this.unregister();
+        }
+    }
+
+    public confirmPairing(requestId: string): void {
+        const invocation = this.pendingRequests.get(requestId);
+        if (invocation) {
+            invocation.return_value(null);
+            this.pendingRequests.delete(requestId);
+
+            this.unregister();
+        }
+    }
+
+    public cancelConfirmation(requestId: string): void {
+        const invocation = this.pendingRequests.get(requestId);
+        if (invocation) {
+            invocation.return_dbus_error(
+                "org.bluez.Error.Canceled",
+                "Pairing confirmation canceled by user",
+            );
+            this.pendingRequests.delete(requestId);
+
             this.unregister();
         }
     }

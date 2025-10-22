@@ -152,6 +152,13 @@ export class Window extends Adw.ApplicationWindow {
             (_, devicePath: string, requestId: string) =>
                 this._showPinDialog(devicePath, requestId),
         );
+
+        // Listen for confirmation requests from the agent
+        this._bluetoothManager.adapter.bluetoothAgent.connect(
+            "confirmation-request",
+            (_, devicePath: string, requestId: string, passkey: number) =>
+                this._showConfirmationDialog(devicePath, requestId, passkey),
+        );
     }
 
     private _showError = (error: ErrorPopUp) => {
@@ -224,6 +231,46 @@ export class Window extends Adw.ApplicationWindow {
 
         dialog.present(this);
         pinEntry.grab_focus();
+    }
+
+    private _showConfirmationDialog(
+        devicePath: string,
+        requestId: string,
+        passkey: number,
+    ) {
+        // Get device info for the dialog
+        const device = this._bluetoothManager.adapter?.devices.find(
+            (d) => d.devicePath === devicePath,
+        );
+        const deviceName = device?.alias;
+
+        const dialog = new Adw.AlertDialog({
+            heading: "Confirm Pairing",
+            body: `Confirm that the passkey shown on ${deviceName} matches:\n\n${passkey.toString().padStart(6, "0")}`,
+            closeResponse: "cancel",
+            defaultResponse: "confirm",
+        });
+
+        dialog.add_response("cancel", "Cancel");
+        dialog.add_response("confirm", "Confirm");
+        dialog.set_response_appearance(
+            "confirm",
+            Adw.ResponseAppearance.SUGGESTED,
+        );
+
+        dialog.connect("response", (_, response) => {
+            if (response === "confirm") {
+                this._bluetoothManager.adapter?.bluetoothAgent.confirmPairing(
+                    requestId,
+                );
+            } else {
+                this._bluetoothManager.adapter?.bluetoothAgent.cancelConfirmation(
+                    requestId,
+                );
+            }
+        });
+
+        dialog.present(this);
     }
 
     private _addDevice(devicePath: string) {
