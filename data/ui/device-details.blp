@@ -53,6 +53,17 @@ template $Gjs_DeviceDetailsWindow: Adw.Window {
           ];
         }
       }
+
+      Adw.PreferencesGroup {
+        Adw.ButtonRow forget_button {
+          activatable: true;
+          title: "Forget Device...";
+
+          css-classes: [
+            "destructive-action",
+          ];
+        }
+      }
     };
   };
 }
