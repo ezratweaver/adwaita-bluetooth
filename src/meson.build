@@ -4,6 +4,7 @@ sources = files(
   'main.ts',
   'window.ts',
   'device-details-window.ts',
+  'pin-confirmation-dialog.ts',
   'bluetooth/bluetooth.ts',
   'bluetooth/adapter.ts',
   'bluetooth/device.ts',

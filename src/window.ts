@@ -4,6 +4,7 @@ import Gtk from "gi://Gtk?version=4.0";
 import { BluetoothManager, ErrorPopUp } from "./bluetooth/bluetooth.js";
 import { Device } from "./bluetooth/device.js";
 import { DeviceDetailsWindow } from "./device-details-window.js";
+import { PinConfirmationDialog } from "./pin-confirmation-dialog.js";
 
 export class Window extends Adw.ApplicationWindow {
     private _bluetooth_toggle!: Gtk.Switch;
@@ -178,30 +179,21 @@ export class Window extends Adw.ApplicationWindow {
         );
         const deviceName = device?.alias;
 
-        const dialog = new Adw.AlertDialog({
-            heading: "Confirm Bluetooth PIN",
-            body: `Please confirm that the following PIN matches the one displayed on "${deviceName}".\n\n${passkey.toString().padStart(6, "0")}`,
-            closeResponse: "cancel",
-            defaultResponse: "confirm",
-        });
-
-        dialog.add_response("cancel", "Cancel");
-        dialog.add_response("confirm", "Confirm");
-        dialog.set_response_appearance(
-            "confirm",
-            Adw.ResponseAppearance.SUGGESTED,
+        const dialog = new PinConfirmationDialog(
+            deviceName || "Unknown Device",
+            passkey.toString(),
         );
 
-        dialog.connect("response", (_, response) => {
-            if (response === "confirm") {
-                this._bluetoothManager.adapter?.bluetoothAgent.confirmPairing(
-                    requestId,
-                );
-            } else {
-                this._bluetoothManager.adapter?.bluetoothAgent.cancelConfirmation(
-                    requestId,
-                );
-            }
+        dialog.connect("confirmed", () => {
+            this._bluetoothManager.adapter?.bluetoothAgent.confirmPairing(
+                requestId,
+            );
+        });
+
+        dialog.connect("cancelled", () => {
+            this._bluetoothManager.adapter?.bluetoothAgent.cancelConfirmation(
+                requestId,
+            );
         });
 
         dialog.present(this);

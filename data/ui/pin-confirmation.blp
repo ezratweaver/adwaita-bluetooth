@@ -1,0 +1,54 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $Gjs_PinConfirmationDialog: Adw.Dialog {
+  content-width: 400;
+  content-height: 200;
+
+  child: Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      show-end-title-buttons: false;
+
+      title-widget: Label {
+        label: "Confirm Bluetooth PIN";
+      };
+
+      [start]
+      Button cancel_button {
+        label: "Cancel";
+      }
+
+      [end]
+      Button confirm_button {
+        label: "Confirm";
+
+        styles [
+          "suggested-action",
+        ]
+      }
+    }
+
+    content: Box {
+      orientation: vertical;
+      spacing: 24;
+      margin-top: 24;
+      margin-bottom: 24;
+      margin-start: 24;
+      margin-end: 24;
+
+      Label device_message {
+        wrap: true;
+        halign: center;
+      }
+
+      Label pin_label {
+        halign: center;
+
+        styles [
+          "title-1",
+        ]
+      }
+    };
+  };
+}

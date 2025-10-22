@@ -208,6 +208,7 @@ export class BluetoothAgent extends GObject.Object {
                     }
                     case "Cancel": {
                         // TODO: Update state on pairing cancelling
+                        this.unregister();
                         invocation.return_value(null);
                         break;
                     }
