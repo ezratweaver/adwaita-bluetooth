@@ -179,8 +179,8 @@ export class Window extends Adw.ApplicationWindow {
         const deviceName = device?.alias;
 
         const dialog = new Adw.AlertDialog({
-            heading: "Confirm Pairing",
-            body: `Confirm that the passkey shown on ${deviceName} matches:\n\n${passkey.toString().padStart(6, "0")}`,
+            heading: "Confirm Bluetooth PIN",
+            body: `Please confirm that the following PIN matches the one displayed on "${deviceName}".\n\n${passkey.toString().padStart(6, "0")}`,
             closeResponse: "cancel",
             defaultResponse: "confirm",
         });
