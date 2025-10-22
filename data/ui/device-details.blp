@@ -14,6 +14,18 @@ template $Gjs_DeviceDetailsWindow: Adw.Window {
 
     content: Adw.PreferencesPage {
       Adw.PreferencesGroup {
+        Adw.ActionRow connection_row {
+          title: "Connection";
+          activatable-widget: connection_switch;
+
+          [suffix]
+          Switch connection_switch {
+            valign: center;
+          }
+        }
+      }
+
+      Adw.PreferencesGroup {
         Adw.ActionRow paired_row {
           title: "Paired";
           subtitle: "Yes";

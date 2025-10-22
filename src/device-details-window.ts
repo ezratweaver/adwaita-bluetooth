@@ -5,6 +5,7 @@ import { Device } from "./bluetooth/device.js";
 
 export class DeviceDetailsWindow extends Adw.Window {
     private device: Device;
+    private _connection_switch!: Gtk.Switch;
     private _paired_row!: Adw.ActionRow;
     private _type_row!: Adw.ActionRow;
     private _address_row!: Adw.ActionRow;
@@ -14,7 +15,7 @@ export class DeviceDetailsWindow extends Adw.Window {
             {
                 Template:
                     "resource:///com/eweaver/adw_bluetooth/ui/device-details.ui",
-                InternalChildren: ["paired_row", "type_row", "address_row"],
+                InternalChildren: ["connection_switch", "paired_row", "type_row", "address_row"],
             },
             this,
         );
