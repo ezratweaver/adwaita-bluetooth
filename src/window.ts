@@ -5,6 +5,7 @@ import { BluetoothManager, ErrorPopUp } from "./bluetooth/bluetooth.js";
 import { Device } from "./bluetooth/device.js";
 import { DeviceDetailsWindow } from "./device-details-window.js";
 import { PinConfirmationDialog } from "./pin-confirmation-dialog.js";
+import Gio from "gi://Gio?version=2.0";
 
 export class Window extends Adw.ApplicationWindow {
     private _bluetooth_toggle!: Gtk.Switch;
@@ -320,8 +321,6 @@ export class Window extends Adw.ApplicationWindow {
             }
         } catch (error) {
             if (!device.paired || device.connected) {
-                // User failed to connect to whatever device so lets start
-                // discovering again so they can do something else
                 this._bluetoothManager.adapter?.startDiscovery();
             }
 
@@ -333,9 +332,30 @@ export class Window extends Adw.ApplicationWindow {
 
             log(`An error occurred while trying to ${action} device: ${error}`);
 
+            let toastMessage = `An error occurred attempting to ${action} with ${device.alias}`;
+
+            if (
+                error instanceof Gio.IOErrorEnum &&
+                error.code === Gio.IOErrorEnum.DBUS_ERROR
+            ) {
+                log(
+                    `target_error_code: ${Gio.DBusError.INVALID_SIGNATURE} our_error_code: ${error.code}`,
+                );
+
+                switch (error.code) {
+                    case Gio.DBusError.INVALID_SIGNATURE:
+                    case Gio.DBusError.AUTH_FAILED:
+                        toastMessage =
+                            action === "pair with"
+                                ? `Pairing was rejected by ${device.alias}`
+                                : `Authentication failed with ${device.alias}`;
+                        break;
+                }
+            }
+
             const toast = new Adw.Toast({
-                title: `Failed to ${action} ${device.alias}`,
-                timeout: 3,
+                title: toastMessage,
+                timeout: 5,
             });
             this._toast_overlay.add_toast(toast);
         }
