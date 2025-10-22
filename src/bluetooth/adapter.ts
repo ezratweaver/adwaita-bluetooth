@@ -83,7 +83,7 @@ export class Adapter extends GObject.Object {
         this._syncSavedDevices();
 
         if (this._powered) {
-            this.setAdapterDiscovering();
+            this.startDiscovery();
         }
     }
 
@@ -251,7 +251,7 @@ export class Adapter extends GObject.Object {
         this.notify("powered");
     }
 
-    private startDiscovery() {
+    public startDiscovery() {
         this.adapterProxy.call_sync(
             "StartDiscovery",
             null,
@@ -261,7 +261,7 @@ export class Adapter extends GObject.Object {
         );
     }
 
-    private stopDiscovery() {
+    public stopDiscovery() {
         if (this.discoveryTimeoutId) {
             GLib.source_remove(this.discoveryTimeoutId);
         }
@@ -289,22 +289,8 @@ export class Adapter extends GObject.Object {
         );
 
         if (powered) {
-            this.setAdapterDiscovering();
+            this.startDiscovery();
         }
-    }
-
-    public setAdapterDiscovering(): void {
-        this.startDiscovery();
-
-        this.discoveryTimeoutId = GLib.timeout_add_seconds(
-            GLib.PRIORITY_DEFAULT,
-            30,
-            () => {
-                this.stopDiscovery();
-
-                return false;
-            },
-        );
     }
 
     public removeDevice(devicePath: string): void {

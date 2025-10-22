@@ -305,6 +305,7 @@ export class Window extends Adw.ApplicationWindow {
     private async _handleDevicePair(device: Device) {
         try {
             if (!device.paired) {
+                this._bluetoothManager.adapter?.stopDiscovery();
                 // Pair first if not paired
                 await device.pairDevice();
                 // After successful pairing, connect automatically

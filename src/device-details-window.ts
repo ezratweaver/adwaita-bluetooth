@@ -62,6 +62,7 @@ export class DeviceDetailsWindow extends Adw.Window {
 
         this._connection_switch.connect("state-set", (_, state) => {
             if (state && !device.connected) {
+                this.adapter.stopDiscovery();
                 device.connectDevice();
             } else if (!state && device.connected) {
                 device.disconnectDevice();
