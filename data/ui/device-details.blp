@@ -4,6 +4,7 @@ using Adw 1;
 template $Gjs_DeviceDetailsWindow: Adw.Window {
   default-width: 420;
   default-height: 550;
+  resizable: false;
   modal: true;
 
   content: Adw.ToolbarView {
@@ -55,13 +56,20 @@ template $Gjs_DeviceDetailsWindow: Adw.Window {
       }
 
       Adw.PreferencesGroup {
-        Adw.ButtonRow forget_button {
-          activatable: true;
-          title: "Forget Device...";
+        ListBox {
+          selection-mode: none;
 
-          css-classes: [
-            "destructive-action",
-          ];
+          styles [
+            "boxed-list",
+          ]
+
+          Adw.ButtonRow forget_button {
+            title: "Forget Device...";
+
+            styles [
+              "destructive-action",
+            ]
+          }
         }
       }
     };
