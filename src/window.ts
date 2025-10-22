@@ -345,10 +345,7 @@ export class Window extends Adw.ApplicationWindow {
                 switch (error.code) {
                     case Gio.DBusError.INVALID_SIGNATURE:
                     case Gio.DBusError.AUTH_FAILED:
-                        toastMessage =
-                            action === "pair with"
-                                ? `Pairing was rejected by ${device.alias}`
-                                : `Authentication failed with ${device.alias}`;
+                        toastMessage = `Authentication failed with ${device.alias}`;
                         break;
                 }
             }
