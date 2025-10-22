@@ -25,6 +25,8 @@ export class Device extends GObject.Object {
     private _name: string | undefined;
     private _paired: boolean | undefined;
     private _trusted: boolean | undefined;
+    private _class: number | undefined;
+    private _icon: string | undefined;
     private _connecting: boolean = false;
 
     static {
@@ -94,6 +96,22 @@ export class Device extends GObject.Object {
                         GObject.ParamFlags.READABLE,
                         false,
                     ),
+                    deviceClass: GObject.ParamSpec.uint(
+                        "device-class",
+                        "Device Class",
+                        "Device class",
+                        GObject.ParamFlags.READABLE,
+                        0,
+                        0xffffff,
+                        0,
+                    ),
+                    icon: GObject.ParamSpec.string(
+                        "icon",
+                        "Icon",
+                        "Device icon",
+                        GObject.ParamFlags.READABLE,
+                        "",
+                    ),
                 },
                 Signals: {
                     "device-changed": {},
@@ -140,6 +158,8 @@ export class Device extends GObject.Object {
         this._name = unpackProperty<string>("Name");
         this._paired = unpackProperty<boolean>("Paired");
         this._trusted = unpackProperty<boolean>("Trusted");
+        this._class = unpackProperty<number>("Class");
+        this._icon = unpackProperty<string>("Icon");
     }
 
     private _setupPropertyChangeListener(): void {
@@ -155,6 +175,8 @@ export class Device extends GObject.Object {
                 Name: "_name",
                 Paired: "_paired",
                 Trusted: "_trusted",
+                Class: "_class",
+                Icon: "_icon",
             };
 
             for (const [dbusProp, privateProp] of Object.entries(propertyMap)) {
@@ -167,13 +189,21 @@ export class Device extends GObject.Object {
                         dbusProp === "Paired" ||
                         dbusProp === "Trusted";
 
+                    const isNumber = dbusProp === "Class";
+
                     const newValue = isBoolean
                         ? changedValue.get_boolean()
-                        : changedValue.get_string()[0];
+                        : isNumber
+                          ? changedValue.get_uint32()
+                          : changedValue.get_string()[0];
 
                     if ((this as any)[privateProp] !== newValue) {
                         (this as any)[privateProp] = newValue;
-                        this.notify(dbusProp.toLowerCase());
+                        const notifyProp =
+                            dbusProp === "Class"
+                                ? "device-class"
+                                : dbusProp.toLowerCase();
+                        this.notify(notifyProp);
                         changed_any = true;
                     }
                 }
@@ -326,5 +356,13 @@ export class Device extends GObject.Object {
 
     get connecting(): boolean {
         return this._connecting;
+    }
+
+    get deviceClass(): number {
+        return this._class ?? 0;
+    }
+
+    get icon(): string {
+        return this._icon ?? "";
     }
 }
