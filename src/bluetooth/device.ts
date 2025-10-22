@@ -5,6 +5,64 @@ import { BluetoothAgent } from "./agent.js";
 
 export const DEVICE_INTERFACE = "org.bluez.Device1";
 
+export function getDeviceTypeFromClass(cod: number): string {
+    const major = (cod >> 8) & 0x1f;
+    const minor = (cod >> 2) & 0x3f;
+
+    switch (major) {
+        case 0x01: // Computer
+            switch (minor) {
+                case 0x03:
+                    return "Laptop";
+                case 0x04:
+                    return "Handheld PC/PDA";
+                case 0x06:
+                    return "Wearable Computer";
+                default:
+                    return "Computer";
+            }
+
+        case 0x02: // Phone
+            switch (minor) {
+                case 0x01:
+                    return "Cellular Phone";
+                case 0x03:
+                    return "Smartphone";
+                default:
+                    return "Phone";
+            }
+
+        case 0x04: // Audio/Video
+            switch (minor) {
+                case 0x01:
+                    return "Headset";
+                case 0x08:
+                    return "Speaker";
+                case 0x0c:
+                    return "Headphones";
+                case 0x10:
+                    return "Portable Audio";
+                case 0x14:
+                    return "Car Audio";
+                default:
+                    return "Audio Device";
+            }
+
+        case 0x05:
+            return "Peripheral";
+        case 0x06:
+            return "Imaging Device";
+        case 0x07:
+            return "Wearable";
+        case 0x08:
+            return "Toy";
+        case 0x09:
+            return "Health Device";
+        default:
+            return "Unknown Device";
+    }
+}
+
 interface DeviceProps {
     devicePath: string;
     systemBus: Gio.DBusConnection;
@@ -364,5 +422,9 @@ export class Device extends GObject.Object {
 
     get icon(): string {
         return this._icon ?? "";
+    }
+
+    get deviceType(): string {
+        return getDeviceTypeFromClass(this.deviceClass);
     }
 }
