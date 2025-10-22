@@ -147,13 +147,6 @@ export class Window extends Adw.ApplicationWindow {
             (_, devicePath: string) => this._removeDevice(devicePath),
         );
 
-        // Listen for PIN requests from the agent
-        this._bluetoothManager.adapter.bluetoothAgent.connect(
-            "pin-request",
-            (_, devicePath: string, requestId: string) =>
-                this._showPinDialog(devicePath, requestId),
-        );
-
         // Listen for confirmation requests from the agent
         this._bluetoothManager.adapter.bluetoothAgent.connect(
             "confirmation-request",
@@ -175,71 +168,11 @@ export class Window extends Adw.ApplicationWindow {
         dialog.present(this);
     };
 
-    private _showPinDialog(devicePath: string, requestId: string) {
-        // Get device info for the dialog
-        const device = this._bluetoothManager.adapter?.devices.find(
-            (d) => d.devicePath === devicePath,
-        );
-        const deviceName = device?.alias;
-
-        const dialog = new Adw.AlertDialog({
-            heading: "PIN Required",
-            body: `Enter the PIN code for ${deviceName}`,
-            closeResponse: "cancel",
-            defaultResponse: "pair",
-        });
-
-        dialog.add_response("cancel", "Cancel");
-        dialog.add_response("pair", "Pair");
-        dialog.set_response_appearance(
-            "pair",
-            Adw.ResponseAppearance.SUGGESTED,
-        );
-
-        // Create PIN entry
-        const pinEntry = new Gtk.Entry({
-            placeholder_text: "Enter PIN (e.g. 0000)",
-            max_length: 16,
-            input_purpose: Gtk.InputPurpose.DIGITS,
-        });
-
-        const box = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL,
-            spacing: 12,
-        });
-        box.append(pinEntry);
-        dialog.set_extra_child(box);
-
-        dialog.connect("response", (_, response) => {
-            if (response === "pair") {
-                const pin = pinEntry.get_text().trim();
-                if (pin) {
-                    this._bluetoothManager.adapter?.bluetoothAgent.providePinCode(
-                        requestId,
-                        pin,
-                    );
-                } else {
-                    this._bluetoothManager.adapter?.bluetoothAgent.cancelPinRequest(
-                        requestId,
-                    );
-                }
-            } else {
-                this._bluetoothManager.adapter?.bluetoothAgent.cancelPinRequest(
-                    requestId,
-                );
-            }
-        });
-
-        dialog.present(this);
-        pinEntry.grab_focus();
-    }
-
     private _showConfirmationDialog(
         devicePath: string,
         requestId: string,
         passkey: number,
     ) {
-        // Get device info for the dialog
         const device = this._bluetoothManager.adapter?.devices.find(
             (d) => d.devicePath === devicePath,
         );

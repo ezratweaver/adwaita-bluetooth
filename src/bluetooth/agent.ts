@@ -21,9 +21,6 @@ export class BluetoothAgent extends GObject.Object {
         GObject.registerClass(
             {
                 Signals: {
-                    "pin-request": {
-                        param_types: [GObject.TYPE_STRING, GObject.TYPE_STRING],
-                    },
                     "confirmation-request": {
                         param_types: [
                             GObject.TYPE_STRING,
@@ -161,27 +158,6 @@ export class BluetoothAgent extends GObject.Object {
         const handleAsync = async () => {
             try {
                 switch (methodName) {
-                    case "RequestPinCode": {
-                        const [devicePath] = parameters.deep_unpack() as [
-                            string,
-                        ];
-                        const requestId = `pin-${Date.now()}`;
-
-                        // Store the invocation for later response
-                        this.pendingRequests.set(requestId, invocation);
-
-                        // Emit signal for UI to handle
-                        this.emit("pin-request", devicePath, requestId);
-                        break;
-                    }
-                    case "RequestPasskey": {
-                        // TODO: Implement 6 digit passkey (integer) input dialog for user to input code
-                        invocation.return_dbus_error(
-                            "org.bluez.Error.Rejected",
-                            "Passkey request not implemented yet",
-                        );
-                        break;
-                    }
                     case "DisplayPinCode": {
                         // TODO: Implement PIN code display dialog to show to user
                         invocation.return_dbus_error(
@@ -257,29 +233,6 @@ export class BluetoothAgent extends GObject.Object {
                 `Agent error: ${error}`,
             );
         });
-    }
-
-    public providePinCode(requestId: string, pin: string): void {
-        const invocation = this.pendingRequests.get(requestId);
-        if (invocation) {
-            invocation.return_value(new GLib.Variant("(s)", [pin]));
-            this.pendingRequests.delete(requestId);
-
-            this.unregister();
-        }
-    }
-
-    public cancelPinRequest(requestId: string): void {
-        const invocation = this.pendingRequests.get(requestId);
-        if (invocation) {
-            invocation.return_dbus_error(
-                "org.bluez.Error.Canceled",
-                "PIN request canceled by user",
-            );
-            this.pendingRequests.delete(requestId);
-
-            this.unregister();
-        }
     }
 
     public confirmPairing(requestId: string): void {
