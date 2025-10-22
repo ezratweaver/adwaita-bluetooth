@@ -37,7 +37,7 @@ export class DeviceDetailsWindow extends Adw.Window {
         this.device = device;
 
         this._paired_row.set_subtitle(device.paired ? "Yes" : "No");
-        this._type_row.set_subtitle("N/A");
+        this._type_row.set_subtitle(device.deviceType);
         this._address_row.set_subtitle(device.address);
 
         this.device.bind_property(
