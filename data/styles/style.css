@@ -10,3 +10,7 @@
 toolbarview {
   background: @view_bg_color;
 }
+
+.pin {
+  font-size: 48px;
+}

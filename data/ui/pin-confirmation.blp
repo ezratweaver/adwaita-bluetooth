@@ -2,8 +2,8 @@ using Gtk 4.0;
 using Adw 1;
 
 template $Gjs_PinConfirmationDialog: Adw.Dialog {
-  content-width: 400;
-  content-height: 200;
+  content-width: 428;
+  content-height: 260;
 
   child: Adw.ToolbarView {
     [top]
@@ -12,6 +12,10 @@ template $Gjs_PinConfirmationDialog: Adw.Dialog {
 
       title-widget: Label {
         label: "Confirm Bluetooth PIN";
+
+        css-classes: [
+          "heading",
+        ];
       };
 
       [start]
@@ -31,22 +35,28 @@ template $Gjs_PinConfirmationDialog: Adw.Dialog {
 
     content: Box {
       orientation: vertical;
-      spacing: 24;
-      margin-top: 24;
+      spacing: 30;
+      margin-top: 30;
       margin-bottom: 24;
-      margin-start: 24;
-      margin-end: 24;
+      margin-start: 12;
+      margin-end: 12;
 
       Label device_message {
         wrap: true;
         halign: center;
+        justify: center;
+
+        styles [
+          "body",
+        ]
       }
 
       Label pin_label {
         halign: center;
 
         styles [
-          "title-1",
+          "pin",
+          "numeric",
         ]
       }
     };
