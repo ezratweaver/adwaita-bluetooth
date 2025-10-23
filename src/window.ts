@@ -374,10 +374,6 @@ export class Window extends Adw.ApplicationWindow {
                 error instanceof Gio.IOErrorEnum &&
                 error.code === Gio.IOErrorEnum.DBUS_ERROR
             ) {
-                log(
-                    `target_error_code: ${Gio.DBusError.INVALID_SIGNATURE} our_error_code: ${error.code}`,
-                );
-
                 switch (error.code) {
                     case Gio.DBusError.INVALID_SIGNATURE:
                     case Gio.DBusError.AUTH_FAILED:
