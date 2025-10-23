@@ -1,15 +1,47 @@
 {
-  description = "Flake for adw-bluetooth applet";
+  description = "Adwaita Bluetooth — GJS + Libadwaita Bluetooth manager";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
 
   outputs =
-    { nixpkgs, ... }:
+    { self, nixpkgs }:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
     in
     {
+      # ---- Buildable package ----
+      packages.${system}.default = pkgs.stdenv.mkDerivation {
+        pname = "adw-bluetooth";
+        version = "0.1.0";
+        src = ./.;
+
+        nativeBuildInputs = [
+          pkgs.meson
+          pkgs.ninja
+          pkgs.pkg-config
+          pkgs.blueprint-compiler
+          pkgs.typescript
+          pkgs.gobject-introspection
+          pkgs.desktop-file-utils
+          pkgs.librsvg
+          pkgs.wrapGAppsHook4
+        ];
+
+        buildInputs = [
+          pkgs.gjs
+          pkgs.glib
+          pkgs.gtk4
+          pkgs.libadwaita
+          pkgs.gnome-themes-extra
+        ];
+
+        mesonFlags = [
+          "--prefix=${placeholder "out"}"
+        ];
+      };
+
+      # ---- Dev shell ----
       devShells.${system}.default = pkgs.mkShell {
         buildInputs = [
           pkgs.git
@@ -17,19 +49,14 @@
           pkgs.gobject-introspection
           pkgs.gtk4
           pkgs.libadwaita
-          pkgs.gnome-themes-extra
           pkgs.meson
           pkgs.ninja
           pkgs.gjs
           pkgs.typescript
           pkgs.desktop-file-utils
           pkgs.librsvg
-
-          # Dev tools
-          pkgs.gnome-builder
           pkgs.blueprint-compiler
         ];
-
       };
     };
 }
