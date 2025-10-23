@@ -185,10 +185,9 @@ export class Window extends Adw.ApplicationWindow {
         const device = this._bluetoothManager.adapter?.devices.find(
             (d) => d.devicePath === devicePath,
         );
-        const deviceName = device?.alias;
 
         const dialog = new PinConfirmationDialog(
-            deviceName || "Unknown Device",
+            device?.alias ?? "Unknown Device",
             passkey.toString(),
         );
 
@@ -211,11 +210,10 @@ export class Window extends Adw.ApplicationWindow {
         const device = this._bluetoothManager.adapter?.devices.find(
             (d) => d.devicePath === devicePath,
         );
-        const deviceName = device?.alias || "Unknown Device";
 
         const dialog = new Adw.AlertDialog({
             heading: "Bluetooth Pairing Request",
-            body: `"${deviceName}" would like to pair\nwith your computer.`,
+            body: `"${device?.alias ?? "Unknown Device"}" would like to pair\nwith your computer.`,
             closeResponse: "cancel",
             defaultResponse: "allow",
         });

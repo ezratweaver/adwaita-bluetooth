@@ -263,6 +263,11 @@ export class Device extends GObject.Object {
                                 : dbusProp.toLowerCase();
                         this.notify(notifyProp);
                         changed_any = true;
+                        
+                        // Notify displayName if alias, name, or address changed
+                        if (dbusProp === "Alias" || dbusProp === "Name" || dbusProp === "Address") {
+                            this.notify("display-name");
+                        }
                     }
                 }
             }
@@ -386,7 +391,7 @@ export class Device extends GObject.Object {
     }
 
     get alias(): string {
-        return this._alias ?? "";
+        return this._alias || "Unknown Device";
     }
 
     get blocked(): boolean {
@@ -428,4 +433,5 @@ export class Device extends GObject.Object {
     get deviceType(): string {
         return getDeviceTypeFromClass(this.deviceClass);
     }
+
 }
