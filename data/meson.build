@@ -28,6 +28,17 @@ blueprints = custom_target('blueprints',
   command: [find_program('blueprint-compiler'), 'batch-compile', '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
 )
 
+desktop_conf = configuration_data()
+desktop_conf.set('exec', 'com.eweaver.adw_bluetooth')
+
+desktop = configure_file(
+  input: 'com.eweaver.adw_bluetooth.desktop.in',
+  output: 'com.eweaver.adw_bluetooth.desktop',
+  configuration: desktop_conf,
+  install: true,
+  install_dir: join_paths(get_option('datadir'), 'applications')
+)
+
 # Compile GResources (UI, icons, etc.)
 data_res = gnome.compile_resources(
   'com.eweaver.adw_bluetooth.data',
