@@ -1,15 +1,9 @@
 gnome = import('gnome')
 
-sources = files(
-  'main.ts',
-  'window.ts',
-  'device-details-window.ts',
-  'pin-confirmation-dialog.ts',
-  'bluetooth/bluetooth.ts',
-  'bluetooth/adapter.ts',
-  'bluetooth/device.ts',
-  'bluetooth/agent.ts'
-)
+# Grab all .ts files recursively
+# Crazy idea! If the code is in the repo, it probably needs to get compiled!
+c = run_command('bash', '-c', 'find . -name "*.ts" | sort', check: true)
+sources = files(c.stdout().strip().split('\n'))
 
 tsc_out = meson.project_build_root() / 'tsc-out'
 
