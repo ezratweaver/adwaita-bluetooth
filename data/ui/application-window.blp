@@ -104,8 +104,17 @@ SizeGroup {
 menu main_menu {
   section {
     item {
+      label: _("Toggle Discovery");
       action: "win.toggle-discovery";
       icon-name: "bluetooth-active-symbolic";
+    }
+  }
+
+  section {
+    item {
+      label: _("About");
+      action: "win.about";
+      icon-name: "help-about-symbolic";
     }
   }
 }

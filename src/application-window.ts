@@ -88,7 +88,16 @@ export class Window extends Adw.ApplicationWindow {
             }
         });
 
+        const aboutAction = new Gio.SimpleAction({
+            name: "about",
+        });
+
+        aboutAction.connect("activate", () => {
+            this._showAbout();
+        });
+
         this.add_action(toggleDiscoveryAction);
+        this.add_action(aboutAction);
     }
 
     private _setupPropertyBindings(): void {
@@ -246,6 +255,19 @@ export class Window extends Adw.ApplicationWindow {
     }
 
     // Dialog methods
+    private _showAbout() {
+        const aboutDialog = new Adw.AboutDialog({
+            application_name: "Adwaita Bluetooth",
+            application_icon: "bluetooth-active-symbolic",
+            version: "0.0.1",
+            developer_name: "Ezra Weaver",
+            website: "https://github.com/ezratweaver/adw-bluetooth",
+            issue_url: "https://github.com/ezratweaver/adw-bluetooth/issues",
+        });
+
+        aboutDialog.present(this);
+    }
+
     private _showError = (error: ErrorPopUp) => {
         const dialog = new Adw.AlertDialog({
             heading: error.title,
