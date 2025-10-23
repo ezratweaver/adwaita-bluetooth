@@ -17,7 +17,7 @@ subdir('data')
 subdir('src')
 
 gnome.post_install(
-     glib_compile_schemas: true,
-    gtk_update_icon_cache: true,
+  glib_compile_schemas: true,
+  gtk_update_icon_cache: false, # Enable if we start shipping with icons
   update_desktop_database: true,
 )
