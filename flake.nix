@@ -33,7 +33,6 @@
           pkgs.glib
           pkgs.gtk4
           pkgs.libadwaita
-          pkgs.gnome-themes-extra
         ];
 
         mesonFlags = [
