@@ -19,7 +19,7 @@ export class DeviceDetailsWindow extends Adw.Window {
         GObject.registerClass(
             {
                 Template:
-                    "resource:///com/eweaver/adw_bluetooth/ui/device-details.ui",
+                    "resource:///com/eweaver/adw_bluetooth/ui/device-details-modal.ui",
                 InternalChildren: [
                     "connection_switch",
                     "paired_row",

@@ -3,7 +3,7 @@ import GObject from "gi://GObject";
 import Gtk from "gi://Gtk?version=4.0";
 import { BluetoothManager, ErrorPopUp } from "./bluetooth/bluetooth.js";
 import { Device } from "./bluetooth/device.js";
-import { DeviceDetailsWindow } from "./device-details-window.js";
+import { DeviceDetailsWindow } from "./device-details-modal.js";
 import { PinConfirmationDialog } from "./pin-confirmation-dialog.js";
 import Gio from "gi://Gio?version=2.0";
 
@@ -29,7 +29,8 @@ export class Window extends Adw.ApplicationWindow {
     static {
         GObject.registerClass(
             {
-                Template: "resource:///com/eweaver/adw_bluetooth/ui/window.ui",
+                Template:
+                    "resource:///com/eweaver/adw_bluetooth/ui/application-window.ui",
                 InternalChildren: [
                     "toast-overlay",
                     "bluetooth-toggle",
