@@ -11,6 +11,8 @@ export class Window extends Adw.ApplicationWindow {
     private _menu_button!: Gtk.MenuButton;
     private _bluetooth_toggle!: Gtk.Switch;
     private _disabled_state!: Gtk.Box;
+    private _disabled_header_label!: Gtk.Label;
+    private _disabled_description_label!: Gtk.Label;
     private _enabled_state!: Gtk.Box;
     private _devices_list!: Gtk.ListBox;
     private _discovering_spinner!: Adw.Spinner;
@@ -37,6 +39,8 @@ export class Window extends Adw.ApplicationWindow {
                     "menu-button",
                     "bluetooth-toggle",
                     "disabled-state",
+                    "disabled-header-label",
+                    "disabled-description-label",
                     "enabled-state",
                     "devices-list",
                     "discovering-spinner",
@@ -59,11 +63,7 @@ export class Window extends Adw.ApplicationWindow {
         this._bluetoothManager = new BluetoothManager();
 
         if (!this._bluetoothManager.adapter) {
-            this._showError({
-                title: "No Bluetooth Adapter",
-                description:
-                    "Ensure BlueZ is configured correctly and try again",
-            });
+            this._showNoAdapterState();
             return;
         }
 
@@ -71,6 +71,16 @@ export class Window extends Adw.ApplicationWindow {
         this._setupEventHandlers();
         this._setupDeviceList();
         this._setupActions();
+    }
+
+    private _showNoAdapterState(): void {
+        this._disabled_header_label.set_label("No Bluetooth Adapter");
+        this._disabled_description_label.set_label(
+            "Ensure BlueZ is configured correctly and try again.",
+        );
+        this._disabled_state.set_visible(true);
+        this._enabled_state.set_visible(false);
+        this._bluetooth_toggle.set_visible(false);
     }
 
     private _setupActions(): void {
