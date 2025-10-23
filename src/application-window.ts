@@ -8,6 +8,7 @@ import { PinConfirmationDialog } from "./pin-confirmation-dialog.js";
 import Gio from "gi://Gio?version=2.0";
 
 export class Window extends Adw.ApplicationWindow {
+    private _menu_button!: Gtk.MenuButton;
     private _bluetooth_toggle!: Gtk.Switch;
     private _disabled_state!: Gtk.Box;
     private _enabled_state!: Gtk.Box;
@@ -33,6 +34,7 @@ export class Window extends Adw.ApplicationWindow {
                     "resource:///com/eweaver/adw_bluetooth/ui/application-window.ui",
                 InternalChildren: [
                     "toast-overlay",
+                    "menu-button",
                     "bluetooth-toggle",
                     "disabled-state",
                     "enabled-state",
@@ -68,6 +70,25 @@ export class Window extends Adw.ApplicationWindow {
         this._setupPropertyBindings();
         this._setupEventHandlers();
         this._setupDeviceList();
+        this._setupActions();
+    }
+
+    private _setupActions(): void {
+        const toggleDiscoveryAction = new Gio.SimpleAction({
+            name: "toggle-discovery",
+        });
+
+        toggleDiscoveryAction.connect("activate", () => {
+            if (!this._bluetoothManager.adapter) return;
+
+            if (this._bluetoothManager.adapter.discovering) {
+                this._bluetoothManager.adapter.stopDiscovery();
+            } else {
+                this._bluetoothManager.adapter.startDiscovery();
+            }
+        });
+
+        this.add_action(toggleDiscoveryAction);
     }
 
     private _setupPropertyBindings(): void {

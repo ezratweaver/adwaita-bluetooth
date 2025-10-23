@@ -9,6 +9,14 @@ template $Gjs_Window: Adw.ApplicationWindow {
     child: Adw.ToolbarView {
       [top]
       Adw.HeaderBar {
+        [start]
+        MenuButton menu-button {
+          icon-name: "open-menu-symbolic";
+          tooltip-text: _("Main Menu");
+          menu-model: main_menu;
+          primary: true;
+        }
+
         [end]
         Switch bluetooth-toggle {}
       }
@@ -91,4 +99,13 @@ template $Gjs_Window: Adw.ApplicationWindow {
 
 SizeGroup {
   mode: horizontal;
+}
+
+menu main_menu {
+  section {
+    item {
+      action: "win.toggle-discovery";
+      icon-name: "bluetooth-active-symbolic";
+    }
+  }
 }
