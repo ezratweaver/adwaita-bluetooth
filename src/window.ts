@@ -64,6 +64,14 @@ export class Window extends Adw.ApplicationWindow {
             return;
         }
 
+        this._setupPropertyBindings();
+        this._setupEventHandlers();
+        this._setupDeviceList();
+    }
+
+    private _setupPropertyBindings(): void {
+        if (!this._bluetoothManager.adapter) return;
+
         this._bluetoothManager.adapter.bind_property(
             "powered",
             this._bluetooth_toggle,
@@ -92,7 +100,12 @@ export class Window extends Adw.ApplicationWindow {
             "visible",
             GObject.BindingFlags.SYNC_CREATE,
         );
+    }
 
+    private _setupEventHandlers(): void {
+        if (!this._bluetoothManager.adapter) return;
+
+        // On enabling / disabling bluetooth
         this._bluetooth_toggle.connect("state-set", (_, state) => {
             if (!this._bluetoothManager.adapter) {
                 return true; // Prevent switch toggle if no adapter
@@ -110,6 +123,33 @@ export class Window extends Adw.ApplicationWindow {
             }
         });
 
+        // Adapter listeners
+        this._bluetoothManager.adapter.connect(
+            "device-added",
+            (_, devicePath: string) => this._addDevice(devicePath),
+        );
+        this._bluetoothManager.adapter.connect(
+            "device-removed",
+            (_, devicePath: string) => this._removeDevice(devicePath),
+        );
+
+        // Agent event listeners
+        this._bluetoothManager.adapter.bluetoothAgent.connect(
+            "confirmation-request",
+            (_, devicePath: string, requestId: string, passkey: number) =>
+                this._showConfirmationDialog(devicePath, requestId, passkey),
+        );
+
+        this._bluetoothManager.adapter.bluetoothAgent.connect(
+            "authorization-request",
+            (_, devicePath: string, requestId: string) =>
+                this._showAuthorizationDialog(devicePath, requestId),
+        );
+    }
+
+    private _setupDeviceList(): void {
+        if (!this._bluetoothManager.adapter) return;
+
         /*
          * Sorts devices by priority as:
          *
@@ -118,12 +158,8 @@ export class Window extends Adw.ApplicationWindow {
          * 3. Unknown/non paired devices last
          */
         this._devices_list.set_sort_func((row1, row2) => {
-            const device1 = this._bluetoothManager.adapter?.devices.find(
-                (d) => d.devicePath === row1.name,
-            );
-            const device2 = this._bluetoothManager.adapter?.devices.find(
-                (d) => d.devicePath === row2.name,
-            );
+            const device1 = this._findDeviceByPath(row1.name);
+            const device2 = this._findDeviceByPath(row2.name);
 
             if (!device1 || !device2) return 0;
 
@@ -139,31 +175,55 @@ export class Window extends Adw.ApplicationWindow {
         this._bluetoothManager.adapter.devices.forEach(({ devicePath }) =>
             this._addDevice(devicePath),
         );
+    }
 
-        this._bluetoothManager.adapter.connect(
-            "device-added",
-            (_, devicePath: string) => this._addDevice(devicePath),
-        );
-        this._bluetoothManager.adapter.connect(
-            "device-removed",
-            (_, devicePath: string) => this._removeDevice(devicePath),
-        );
-
-        // Listen for confirmation requests from the agent
-        this._bluetoothManager.adapter.bluetoothAgent.connect(
-            "confirmation-request",
-            (_, devicePath: string, requestId: string, passkey: number) =>
-                this._showConfirmationDialog(devicePath, requestId, passkey),
-        );
-
-        // Listen for authorization requests from the agent
-        this._bluetoothManager.adapter.bluetoothAgent.connect(
-            "authorization-request",
-            (_, devicePath: string, requestId: string) =>
-                this._showAuthorizationDialog(devicePath, requestId),
+    private _findDeviceByPath(devicePath: string): Device | undefined {
+        return this._bluetoothManager.adapter?.devices.find(
+            (d) => d.devicePath === devicePath,
         );
     }
 
+    private _createDeviceRow(device: Device): {
+        row: Adw.ActionRow;
+        spinner: Adw.Spinner;
+        statusLabel: Gtk.Label;
+    } {
+        const row = new Adw.ActionRow({
+            name: device.devicePath,
+            title: device.alias,
+            activatable: true,
+        });
+
+        const statusLabel = new Gtk.Label({
+            label: device.connectedStatus,
+        });
+
+        const spinner = new Adw.Spinner({
+            visible: false,
+        });
+
+        row.add_suffix(statusLabel);
+        row.add_suffix(spinner);
+
+        device.bind_property(
+            "connecting",
+            spinner,
+            "visible",
+            GObject.BindingFlags.SYNC_CREATE,
+        );
+
+        device.bind_property(
+            "connecting",
+            statusLabel,
+            "visible",
+            GObject.BindingFlags.SYNC_CREATE |
+                GObject.BindingFlags.INVERT_BOOLEAN,
+        );
+
+        return { row, spinner, statusLabel };
+    }
+
+    // Dialog methods
     private _showError = (error: ErrorPopUp) => {
         const dialog = new Adw.AlertDialog({
             heading: error.title,
@@ -182,9 +242,7 @@ export class Window extends Adw.ApplicationWindow {
         requestId: string,
         passkey: number,
     ) {
-        const device = this._bluetoothManager.adapter?.devices.find(
-            (d) => d.devicePath === devicePath,
-        );
+        const device = this._findDeviceByPath(devicePath);
 
         const dialog = new PinConfirmationDialog(
             device?.alias ?? "Unknown Device",
@@ -207,9 +265,7 @@ export class Window extends Adw.ApplicationWindow {
     }
 
     private _showAuthorizationDialog(devicePath: string, requestId: string) {
-        const device = this._bluetoothManager.adapter?.devices.find(
-            (d) => d.devicePath === devicePath,
-        );
+        const device = this._findDeviceByPath(devicePath);
 
         const dialog = new Adw.AlertDialog({
             heading: "Bluetooth Pairing Request",
@@ -245,47 +301,15 @@ export class Window extends Adw.ApplicationWindow {
         detailsWindow.present();
     }
 
+    // Device management methods
     private _addDevice(devicePath: string) {
-        const device = this._bluetoothManager.adapter?.devices.find(
-            (d) => d.devicePath === devicePath,
-        );
+        const device = this._findDeviceByPath(devicePath);
         if (!device) {
             return;
         }
 
         const deviceHasName = !!device.name;
-
-        const row = new Adw.ActionRow({
-            name: device.devicePath,
-            title: device.alias,
-            activatable: true,
-        });
-
-        const statusLabel = new Gtk.Label({
-            label: device.connectedStatus,
-        });
-
-        const spinner = new Adw.Spinner({
-            visible: false,
-        });
-
-        row.add_suffix(statusLabel);
-        row.add_suffix(spinner);
-
-        device.bind_property(
-            "connecting",
-            spinner,
-            "visible",
-            GObject.BindingFlags.SYNC_CREATE,
-        );
-
-        device.bind_property(
-            "connecting",
-            statusLabel,
-            "visible",
-            GObject.BindingFlags.SYNC_CREATE |
-                GObject.BindingFlags.INVERT_BOOLEAN,
-        );
+        const { row, spinner, statusLabel } = this._createDeviceRow(device);
 
         this._deviceElements.set(device.devicePath, {
             row,
