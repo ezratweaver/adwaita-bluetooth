@@ -29,7 +29,7 @@ blueprints = custom_target('blueprints',
 )
 
 desktop_conf = configuration_data()
-desktop_conf.set('exec', 'com.eweaver.adw_bluetooth')
+desktop_conf.set('exec', 'adw-bluetooth')
 
 desktop = configure_file(
   input: 'com.eweaver.adw_bluetooth.desktop.in',
