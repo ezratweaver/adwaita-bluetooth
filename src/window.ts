@@ -155,6 +155,13 @@ export class Window extends Adw.ApplicationWindow {
             (_, devicePath: string, requestId: string, passkey: number) =>
                 this._showConfirmationDialog(devicePath, requestId, passkey),
         );
+
+        // Listen for authorization requests from the agent
+        this._bluetoothManager.adapter.bluetoothAgent.connect(
+            "authorization-request",
+            (_, devicePath: string, requestId: string) =>
+                this._showAuthorizationDialog(devicePath, requestId),
+        );
     }
 
     private _showError = (error: ErrorPopUp) => {
@@ -195,6 +202,37 @@ export class Window extends Adw.ApplicationWindow {
             this._bluetoothManager.adapter?.bluetoothAgent.cancelConfirmation(
                 requestId,
             );
+        });
+
+        dialog.present(this);
+    }
+
+    private _showAuthorizationDialog(devicePath: string, requestId: string) {
+        const device = this._bluetoothManager.adapter?.devices.find(
+            (d) => d.devicePath === devicePath,
+        );
+        const deviceName = device?.alias || "Unknown Device";
+
+        const dialog = new Adw.AlertDialog({
+            heading: "Bluetooth Pairing Request",
+            body: `"${deviceName}" would like to pair\nwith your computer.`,
+            closeResponse: "cancel",
+            defaultResponse: "allow",
+        });
+
+        dialog.add_response("cancel", "_Cancel");
+        dialog.add_response("allow", "_Allow");
+
+        dialog.connect("response", (_, response: string) => {
+            if (response === "allow") {
+                this._bluetoothManager.adapter?.bluetoothAgent.confirmAuthorization(
+                    requestId,
+                );
+            } else {
+                this._bluetoothManager.adapter?.bluetoothAgent.cancelAuthorization(
+                    requestId,
+                );
+            }
         });
 
         dialog.present(this);

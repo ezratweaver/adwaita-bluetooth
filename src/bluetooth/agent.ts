@@ -28,6 +28,12 @@ export class BluetoothAgent extends GObject.Object {
                             GObject.TYPE_UINT,
                         ],
                     },
+                    "authorization-request": {
+                        param_types: [
+                            GObject.TYPE_STRING,
+                            GObject.TYPE_STRING,
+                        ],
+                    },
                 },
             },
             this,
@@ -175,10 +181,15 @@ export class BluetoothAgent extends GObject.Object {
                         break;
                     }
                     case "RequestAuthorization": {
-                        // TODO: Implement pop-up for devices to request pairing, give a yes or no for user to accept / decline
-                        invocation.return_dbus_error(
-                            "org.bluez.Error.Rejected",
-                            "Passkey request not implemented yet",
+                        const [devicePath] = parameters.deep_unpack() as [string];
+                        const requestId = `authorize-${Date.now()}`;
+
+                        this.pendingRequests.set(requestId, invocation);
+
+                        this.emit(
+                            "authorization-request",
+                            devicePath,
+                            requestId,
                         );
                         break;
                     }
@@ -242,6 +253,25 @@ export class BluetoothAgent extends GObject.Object {
             invocation.return_dbus_error(
                 "org.bluez.Error.Canceled",
                 "Pairing confirmation canceled by user",
+            );
+            this.pendingRequests.delete(requestId);
+        }
+    }
+
+    public confirmAuthorization(requestId: string): void {
+        const invocation = this.pendingRequests.get(requestId);
+        if (invocation) {
+            invocation.return_value(null);
+            this.pendingRequests.delete(requestId);
+        }
+    }
+
+    public cancelAuthorization(requestId: string): void {
+        const invocation = this.pendingRequests.get(requestId);
+        if (invocation) {
+            invocation.return_dbus_error(
+                "org.bluez.Error.Rejected",
+                "Authorization request rejected by user",
             );
             this.pendingRequests.delete(requestId);
         }
