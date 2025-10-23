@@ -28,6 +28,7 @@ template $Gjs_Window: Adw.ApplicationWindow {
           valign: center;
           hexpand: true;
           spacing: 6;
+          margin-bottom: 40;
 
           Image {
             icon-name: "bluetooth-disabled-symbolic";
@@ -43,7 +44,7 @@ template $Gjs_Window: Adw.ApplicationWindow {
             label: _("Bluetooth Turned Off");
 
             css-classes: [
-              'disabled-header',
+              'title-2',
             ];
           }
 
