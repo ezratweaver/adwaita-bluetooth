@@ -25,6 +25,7 @@
           pkgs.gobject-introspection
           pkgs.desktop-file-utils
           pkgs.librsvg
+          pkgs.wrapGAppsHook4
         ];
 
         buildInputs = [
