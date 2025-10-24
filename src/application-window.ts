@@ -203,6 +203,9 @@ export class Window extends Adw.ApplicationWindow {
 
             if (!device1 || !device2) return 0;
 
+            if (device1.connectionCount > device2.connectionCount) return -1;
+            if (device2.connectionCount > device1.connectionCount) return 1;
+
             if (device1.connected && !device2.connected) return -1;
             if (!device1.connected && device2.connected) return 1;
 
