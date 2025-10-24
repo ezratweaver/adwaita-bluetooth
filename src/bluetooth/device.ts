@@ -2,6 +2,7 @@ import Gio from "gi://Gio?version=2.0";
 import GObject from "gi://GObject?version=2.0";
 import { BLUEZ_SERVICE } from "./bluetooth.js";
 import { BluetoothAgent } from "./agent.js";
+import { incrementDeviceConnectionCount } from "../gsettings.js";
 
 export const DEVICE_INTERFACE = "org.bluez.Device1";
 
@@ -263,9 +264,13 @@ export class Device extends GObject.Object {
                                 : dbusProp.toLowerCase();
                         this.notify(notifyProp);
                         changed_any = true;
-                        
+
                         // Notify displayName if alias, name, or address changed
-                        if (dbusProp === "Alias" || dbusProp === "Name" || dbusProp === "Address") {
+                        if (
+                            dbusProp === "Alias" ||
+                            dbusProp === "Name" ||
+                            dbusProp === "Address"
+                        ) {
                             this.notify("display-name");
                         }
                     }
@@ -433,5 +438,4 @@ export class Device extends GObject.Object {
     get deviceType(): string {
         return getDeviceTypeFromClass(this.deviceClass);
     }
-
 }
