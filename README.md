@@ -14,9 +14,7 @@
 > [!WARNING]
 > This project is a work in progress
 
-
-![adw-bluetooth (1)](https://github.com/user-attachments/assets/ce22f86a-3983-45ba-b999-a3d3328446f3)
-
+![adw-bluetooth](https://github.com/user-attachments/assets/67b1ae9d-0c9c-4a8b-8810-42c1d0ec1d9b)
 
 ## About This Project
 
