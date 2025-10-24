@@ -8,6 +8,7 @@ export class DeviceDetailsModal extends Adw.Window {
     private device: Device;
     private adapter: Adapter;
     private _connection_switch!: Gtk.Switch;
+    private _connection_spinner!: Adw.Spinner;
     private _paired_row!: Adw.ActionRow;
     private _type_row!: Adw.ActionRow;
     private _address_row!: Adw.ActionRow;
@@ -22,6 +23,7 @@ export class DeviceDetailsModal extends Adw.Window {
                     "resource:///com/eweaver/adw_bluetooth/ui/device-details-modal.ui",
                 InternalChildren: [
                     "connection_switch",
+                    "connection_spinner",
                     "paired_row",
                     "type_row",
                     "address_row",
@@ -55,6 +57,21 @@ export class DeviceDetailsModal extends Adw.Window {
             "connected",
             this._connection_switch,
             "active",
+            GObject.BindingFlags.SYNC_CREATE,
+        );
+
+        this.device.bind_property(
+            "connecting",
+            this._connection_switch,
+            "visible",
+            GObject.BindingFlags.SYNC_CREATE |
+                GObject.BindingFlags.INVERT_BOOLEAN,
+        );
+
+        this.device.bind_property(
+            "connecting",
+            this._connection_spinner,
+            "visible",
             GObject.BindingFlags.SYNC_CREATE,
         );
 
