@@ -33,6 +33,14 @@ nix develop
 
 ### Build Steps
 
+#### Using Nix
+
+```bash
+nix build
+```
+
+#### Using Meson
+
 ```bash
 meson setup builddir
 meson compile -C builddir
