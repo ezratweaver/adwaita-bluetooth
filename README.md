@@ -1,6 +1,4 @@
 
-
-
 <h1>
 <p align="center">
   <img width="80" height="100" alt="bluetooth" src="https://github.com/user-attachments/assets/f9f9e18c-2cd3-48f6-a465-d228b2f223c3" />
@@ -14,6 +12,9 @@
 </p>
 </p>
 
+> [!WARNING]
+> This project is a work in progress
+
 <img width="1920" height="1080" alt="2025-10-24-012814_hyprshot" src="https://github.com/user-attachments/assets/e99347a2-7ced-42cf-940a-8d1046afdb76" />
 
 
@@ -21,11 +22,43 @@
 
 A Bluetooth device manager built for tiling window managers like Hyprland and Niri. For NixOS and Arch Linux users who want GNOME's Bluetooth functionality without the full GNOME desktop.
 
-## TODOs
+### Roadmap
 
-- [ ] Implement multi adapter support
-- [ ] Implement File transfer
-- [ ] Implement handling for rfkill
+- [ ] Multi-adapter support
+- [ ] File transfer capabilities
+- [ ] Rfkill handling
+
+## Installation
+
+### NixOS
+
+**Note: nixpkgs package coming soon!**
+
+For now, add this flake to your NixOS configuration:
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    adw-bluetooth.url = "github:ezratweaver/adwaita-bluetooth";
+  };
+
+  outputs = { self, nixpkgs, adw-bluetooth, ... }: {
+    nixosConfigurations.your-hostname = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        ./configuration.nix
+        {
+          environment.systemPackages = [
+            adw-bluetooth.packages.x86_64-linux.default
+          ];
+        }
+      ];
+    };
+  };
+}
+```
+
 
 ## Development
 
@@ -44,6 +77,7 @@ nix develop
 ```bash
 nix build
 ```
+
 
 #### Using Meson
 
