@@ -22,16 +22,12 @@
           pkgs.pkg-config
           pkgs.blueprint-compiler
           pkgs.typescript
-          pkgs.gobject-introspection
           pkgs.desktop-file-utils
-          pkgs.librsvg
           pkgs.wrapGAppsHook4
         ];
 
         buildInputs = [
           pkgs.gjs
-          pkgs.glib
-          pkgs.gtk4
           pkgs.libadwaita
         ];
 
