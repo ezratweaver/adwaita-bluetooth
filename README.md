@@ -8,6 +8,9 @@
 </p>
 </p>
 
+<img width="1920" height="1080" alt="2025-10-24-012814_hyprshot" src="https://github.com/user-attachments/assets/e99347a2-7ced-42cf-940a-8d1046afdb76" />
+
+
 ## About This Project
 
 A Bluetooth device manager built for tiling window managers like Hyprland and Niri. For NixOS and Arch Linux users who want GNOME's Bluetooth functionality without the full GNOME desktop.
