@@ -5,3 +5,4 @@ node_modules/
 .fenv/
 .flatpak-builder/
 /subprojects/blueprint-compiler
+result
