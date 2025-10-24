@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=adw-bluetooth
-Exec=com.eweaver.adw_bluetooth
+Name=Adwaita Bluetooth
+Exec=adw-bluetooth
 Icon=bluetooth
 Terminal=false
 Type=Application
