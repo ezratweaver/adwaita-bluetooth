@@ -28,33 +28,18 @@ A Bluetooth device manager built for tiling window managers like Hyprland and Ni
 
 ## Installation
 
-### NixOS
+### NixOS (Flake only)
 
-**Note: nixpkgs package coming soon!**
-
-For now, add this flake to your NixOS configuration:
+Add input to the flake:
 
 ```nix
-{
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
-    adw-bluetooth.url = "github:ezratweaver/adwaita-bluetooth";
-  };
+adw-bluetooth.url = "github:ezratweaver/adwaita-bluetooth";
+```
 
-  outputs = { self, nixpkgs, adw-bluetooth, ... }: {
-    nixosConfigurations.your-hostname = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [
-        ./configuration.nix
-        {
-          environment.systemPackages = [
-            adw-bluetooth.packages.x86_64-linux.default
-          ];
-        }
-      ];
-    };
-  };
-}
+And in environment.systemPackages add:
+
+```nix
+inputs.adw-bluetooth.packages.${system}.default
 ```
 
 
