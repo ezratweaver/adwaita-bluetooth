@@ -16,6 +16,7 @@ export class BluetoothAgent extends GObject.Object {
     private agentNodeInfo: Gio.DBusNodeInfo;
     private registrationId: number | null = null;
     private pendingRequests: Map<string, Gio.DBusMethodInvocation> = new Map();
+    private agentBlocked: boolean = false;
 
     static {
         GObject.registerClass(
@@ -136,22 +137,22 @@ export class BluetoothAgent extends GObject.Object {
         if (this.registrationId) {
             this.systemBus.unregister_object(this.registrationId);
             this.registrationId = null;
-        }
 
-        try {
-            this.systemBus.call_sync(
-                BLUEZ_SERVICE,
-                "/org/bluez",
-                AGENT_MANAGER_INTERFACE,
-                "UnregisterAgent",
-                new GLib.Variant("(o)", [this.agentPath]),
-                null,
-                Gio.DBusCallFlags.NONE,
-                -1,
-                null,
-            );
-        } catch (error) {
-            log(`Failed to unregister agent: ${error}`);
+            try {
+                this.systemBus.call_sync(
+                    BLUEZ_SERVICE,
+                    "/org/bluez",
+                    AGENT_MANAGER_INTERFACE,
+                    "UnregisterAgent",
+                    new GLib.Variant("(o)", [this.agentPath]),
+                    null,
+                    Gio.DBusCallFlags.NONE,
+                    -1,
+                    null,
+                );
+            } catch (error) {
+                log(`Failed to unregister agent: ${error}`);
+            }
         }
     }
 
@@ -279,5 +280,20 @@ export class BluetoothAgent extends GObject.Object {
             );
             this.pendingRequests.delete(requestId);
         }
+    }
+
+    public get isAgentBlocked(): boolean {
+        return this.agentBlocked;
+    }
+
+    public blockAgent(): void {
+        if (this.agentBlocked) {
+            throw new Error("Another device is already pairing");
+        }
+        this.agentBlocked = true;
+    }
+
+    public freeAgent(): void {
+        this.agentBlocked = false;
     }
 }

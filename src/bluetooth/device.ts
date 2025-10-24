@@ -398,7 +398,8 @@ export class Device extends GObject.Object {
         if (this._connecting) return;
 
         try {
-            this.agent.register();
+            // Block agent from use with other devices until we're done pairing
+            this.agent.blockAgent();
             this._setConnecting(true);
 
             await new Promise<void>((resolve, reject) => {
@@ -419,7 +420,7 @@ export class Device extends GObject.Object {
                 );
             });
         } finally {
-            this.agent.unregister();
+            this.agent.freeAgent();
             this._setConnecting(false);
         }
     }

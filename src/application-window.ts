@@ -66,6 +66,15 @@ export class Window extends Adw.ApplicationWindow {
             return;
         }
 
+        try {
+            this._bluetoothManager.adapter.bluetoothAgent.register();
+        } catch (e) {
+            this._showError({
+                title: "Failed to register bluetooth agent",
+                description: "Another bluetooth application may be running.",
+            });
+        }
+
         this._setupPropertyBindings();
         this._setupEventHandlers();
         this._setupDeviceList();
@@ -507,6 +516,9 @@ export class Window extends Adw.ApplicationWindow {
     }
 
     vfunc_close_request(): boolean {
+        if (this._bluetoothManager.adapter) {
+            this._bluetoothManager.adapter.bluetoothAgent.unregister();
+        }
         this._bluetoothManager.destroy();
         return super.vfunc_close_request();
     }
