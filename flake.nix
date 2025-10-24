@@ -35,10 +35,11 @@
           pkgs.libadwaita
         ];
 
-        # gjs uses the invocation name to add gresource files
-        # to get around this, we set the entry point name manually
+        # Change executable to adw-bluetooth on nixos, and then fix the entrypoint
         preFixup = ''
-          sed -i "1 a imports.package._findEffectiveEntryPointName = () => 'com.eweaver.adw_bluetooth';" $out/bin/com.eweaver.adw_bluetooth
+          mv "$out/bin/com.eweaver.adw_bluetooth" "$out/bin/adw-bluetooth"
+
+          sed -i "1 a imports.package._findEffectiveEntryPointName = () => 'com.eweaver.adw_bluetooth';" "$out/bin/adw-bluetooth"
         '';
       };
 
