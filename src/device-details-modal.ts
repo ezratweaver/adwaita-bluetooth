@@ -4,7 +4,7 @@ import Gtk from "gi://Gtk?version=4.0";
 import { Device } from "./bluetooth/device.js";
 import { Adapter } from "./bluetooth/adapter.js";
 
-export class DeviceDetailsWindow extends Adw.Window {
+export class DeviceDetailsModal extends Adw.Window {
     private device: Device;
     private adapter: Adapter;
     private _connection_switch!: Gtk.Switch;

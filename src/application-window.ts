@@ -3,7 +3,7 @@ import GObject from "gi://GObject";
 import Gtk from "gi://Gtk?version=4.0";
 import { BluetoothManager, ErrorPopUp } from "./bluetooth/bluetooth.js";
 import { Device } from "./bluetooth/device.js";
-import { DeviceDetailsWindow } from "./device-details-modal.js";
+import { DeviceDetailsModal } from "./device-details-modal.js";
 import { PinConfirmationDialog } from "./pin-confirmation-dialog.js";
 import Gio from "gi://Gio?version=2.0";
 
@@ -349,7 +349,7 @@ export class Window extends Adw.ApplicationWindow {
     }
 
     private _showDeviceDetails(device: Device) {
-        const detailsWindow = new DeviceDetailsWindow(
+        const detailsWindow = new DeviceDetailsModal(
             device,
             this._bluetoothManager.adapter!,
             this,
