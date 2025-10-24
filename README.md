@@ -1,6 +1,12 @@
+
+
+
 <h1>
 <p align="center">
-  <br>Adwaita Bluetooth
+  <img width="80" height="100" alt="bluetooth" src="https://github.com/user-attachments/assets/f9f9e18c-2cd3-48f6-a465-d228b2f223c3" />
+  <br>
+  <br>
+  Adwaita Bluetooth
 </h1>
 <p align="center">
     A GNOME inspired Bluetooth device manager built with GTK4 and Libadwaita.
