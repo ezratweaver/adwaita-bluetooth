@@ -28,13 +28,20 @@ export class PinConfirmationDialog extends Adw.Dialog {
         );
     }
 
-    constructor(deviceName: string, pin: string) {
+    constructor(deviceName: string, pin: string, displayOnly: boolean = false) {
         super();
 
-        this._device_message.set_text(
-            `Please confirm that the following PIN matches the one displayed on "${deviceName}".`,
-        );
-        this._pin_label.set_text(pin.padStart(6, "0"));
+        if (displayOnly) {
+            this._device_message.set_text(`Enter this PIN on "${deviceName}":`);
+            this._cancel_button.set_visible(false);
+            this._confirm_button.set_label("OK");
+        } else {
+            this._device_message.set_text(
+                `Please confirm that the following PIN matches the one displayed on "${deviceName}".`,
+            );
+        }
+
+        this._pin_label.set_text(pin);
 
         this._cancel_button.connect("clicked", () => {
             this.emit("cancelled");
@@ -42,8 +49,12 @@ export class PinConfirmationDialog extends Adw.Dialog {
         });
 
         this._confirm_button.connect("clicked", () => {
-            this.emit("confirmed");
-            this.close();
+            if (displayOnly) {
+                this.close();
+            } else {
+                this.emit("confirmed");
+                this.close();
+            }
         });
     }
 }

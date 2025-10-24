@@ -185,6 +185,18 @@ export class Window extends Adw.ApplicationWindow {
             (_, devicePath: string, requestId: string) =>
                 this._showAuthorizationDialog(devicePath, requestId),
         );
+
+        this._bluetoothManager.adapter.bluetoothAgent.connect(
+            "pin-display",
+            (_, devicePath: string, pincode: string) =>
+                this._showPinDisplayDialog(devicePath, pincode),
+        );
+
+        this._bluetoothManager.adapter.bluetoothAgent.connect(
+            "passkey-display",
+            (_, devicePath: string, passkey: number) =>
+                this._showPasskeyDisplayDialog(devicePath, passkey),
+        );
     }
 
     private _setupDeviceList(): void {
@@ -302,7 +314,7 @@ export class Window extends Adw.ApplicationWindow {
 
         const dialog = new PinConfirmationDialog(
             device?.alias ?? "Unknown Device",
-            passkey.toString(),
+            passkey.toString().padStart(6, "0"),
         );
 
         dialog.connect("confirmed", () => {
@@ -344,6 +356,30 @@ export class Window extends Adw.ApplicationWindow {
                 );
             }
         });
+
+        dialog.present(this);
+    }
+
+    private _showPinDisplayDialog(devicePath: string, pincode: string) {
+        const device = this._findDeviceByPath(devicePath);
+
+        const dialog = new PinConfirmationDialog(
+            device?.alias ?? "Unknown Device",
+            pincode,
+            true,
+        );
+
+        dialog.present(this);
+    }
+
+    private _showPasskeyDisplayDialog(devicePath: string, passkey: number) {
+        const device = this._findDeviceByPath(devicePath);
+
+        const dialog = new PinConfirmationDialog(
+            device?.alias ?? "Unknown Device",
+            passkey.toString().padStart(6, "0"),
+            true,
+        );
 
         dialog.present(this);
     }

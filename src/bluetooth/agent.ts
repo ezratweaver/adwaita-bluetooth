@@ -31,6 +31,12 @@ export class BluetoothAgent extends GObject.Object {
                     "authorization-request": {
                         param_types: [GObject.TYPE_STRING, GObject.TYPE_STRING],
                     },
+                    "pin-display": {
+                        param_types: [GObject.TYPE_STRING, GObject.TYPE_STRING],
+                    },
+                    "passkey-display": {
+                        param_types: [GObject.TYPE_STRING, GObject.TYPE_UINT],
+                    },
                 },
             },
             this,
@@ -162,19 +168,19 @@ export class BluetoothAgent extends GObject.Object {
             try {
                 switch (methodName) {
                     case "DisplayPinCode": {
-                        // TODO: Implement PIN code display dialog to show to user
-                        invocation.return_dbus_error(
-                            "org.bluez.Error.Rejected",
-                            "Passkey request not implemented yet",
-                        );
+                        const [devicePath, pincode] =
+                            parameters.deep_unpack() as [string, string];
+
+                        this.emit("pin-display", devicePath, pincode);
+                        invocation.return_value(null);
                         break;
                     }
                     case "DisplayPasskey": {
-                        // TODO: Implement passkey display dialog to show to user
-                        invocation.return_dbus_error(
-                            "org.bluez.Error.Rejected",
-                            "Passkey request not implemented yet",
-                        );
+                        const [devicePath, passkey] =
+                            parameters.deep_unpack() as [string, number];
+
+                        this.emit("passkey-display", devicePath, passkey);
+                        invocation.return_value(null);
                         break;
                     }
                     case "RequestAuthorization": {
