@@ -1,4 +1,3 @@
-
 <h1>
 <p align="center">
   <img width="80" height="100" alt="bluetooth" src="https://github.com/user-attachments/assets/f9f9e18c-2cd3-48f6-a465-d228b2f223c3" />
@@ -15,7 +14,8 @@
 > [!WARNING]
 > This project is a work in progress
 
-<img width="1920" height="1080" alt="2025-10-24-012814_hyprshot" src="https://github.com/user-attachments/assets/e99347a2-7ced-42cf-940a-8d1046afdb76" />
+
+![adw-bluetooth (1)](https://github.com/user-attachments/assets/ce22f86a-3983-45ba-b999-a3d3328446f3)
 
 
 ## About This Project
