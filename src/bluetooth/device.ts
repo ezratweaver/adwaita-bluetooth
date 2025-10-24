@@ -1,6 +1,7 @@
 import Gio from "gi://Gio?version=2.0";
 import GObject from "gi://GObject?version=2.0";
-import { BLUEZ_SERVICE } from "./bluetooth.js";
+import GLib from "gi://GLib?version=2.0";
+import { BLUEZ_SERVICE, DBUS_PROPERTIES_SET } from "./bluetooth.js";
 import { BluetoothAgent } from "./agent.js";
 import { incrementDeviceConnectionCount } from "../gsettings.js";
 
@@ -289,6 +290,20 @@ export class Device extends GObject.Object {
         this.notify("connecting");
     }
 
+    private _setTrusted(): void {
+        this.deviceProxy.call_sync(
+            DBUS_PROPERTIES_SET,
+            new GLib.Variant("(ssv)", [
+                DEVICE_INTERFACE,
+                "Trusted",
+                new GLib.Variant("b", true),
+            ]),
+            Gio.DBusCallFlags.NONE,
+            -1,
+            null,
+        );
+    }
+
     get connectedStatus(): string {
         let deviceStatus: string;
         if (this.connected) {
@@ -324,6 +339,23 @@ export class Device extends GObject.Object {
                     },
                 );
             });
+
+            const connectionCount = incrementDeviceConnectionCount(
+                this._devicePath,
+            );
+
+            /*
+             * We'll trust the device after are third time.
+             * Refer to: https://www.youtube.com/watch?v=iZJPjFmx3ws
+             */
+            if (connectionCount === 3) {
+                try {
+                    this._setTrusted();
+                } catch (e) {
+                    // Not the end of the world if this fails, but nothing we can do
+                    log(`Failed to trust device: ${e}`);
+                }
+            }
         } finally {
             this._setConnecting(false);
         }
