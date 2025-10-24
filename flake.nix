@@ -35,9 +35,11 @@
           pkgs.libadwaita
         ];
 
-        mesonFlags = [
-          "--prefix=${placeholder "out"}"
-        ];
+        # gjs uses the invocation name to add gresource files
+        # to get around this, we set the entry point name manually
+        preFixup = ''
+          sed -i "1 a imports.package._findEffectiveEntryPointName = () => 'com.eweaver.adw_bluetooth';" $out/bin/com.eweaver.adw_bluetooth
+        '';
       };
 
       # ---- Dev shell ----
