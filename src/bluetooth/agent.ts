@@ -29,10 +29,7 @@ export class BluetoothAgent extends GObject.Object {
                         ],
                     },
                     "authorization-request": {
-                        param_types: [
-                            GObject.TYPE_STRING,
-                            GObject.TYPE_STRING,
-                        ],
+                        param_types: [GObject.TYPE_STRING, GObject.TYPE_STRING],
                     },
                 },
             },
@@ -181,7 +178,9 @@ export class BluetoothAgent extends GObject.Object {
                         break;
                     }
                     case "RequestAuthorization": {
-                        const [devicePath] = parameters.deep_unpack() as [string];
+                        const [devicePath] = parameters.deep_unpack() as [
+                            string,
+                        ];
                         const requestId = `authorize-${Date.now()}`;
 
                         this.pendingRequests.set(requestId, invocation);
@@ -215,7 +214,6 @@ export class BluetoothAgent extends GObject.Object {
                         break;
                     }
                     case "Cancel": {
-                        // TODO: Update state on pairing cancelling
                         this.unregister();
                         invocation.return_value(null);
                         break;
