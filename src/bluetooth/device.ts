@@ -3,7 +3,10 @@ import GObject from "gi://GObject?version=2.0";
 import GLib from "gi://GLib?version=2.0";
 import { BLUEZ_SERVICE, DBUS_PROPERTIES_SET } from "./bluetooth.js";
 import { BluetoothAgent } from "./agent.js";
-import { incrementDeviceConnectionCount } from "../gsettings.js";
+import {
+    incrementDeviceConnectionCount,
+    getDeviceConnectionCount,
+} from "../gsettings.js";
 
 export const DEVICE_INTERFACE = "org.bluez.Device1";
 
@@ -88,6 +91,7 @@ export class Device extends GObject.Object {
     private _class: number | undefined;
     private _icon: string | undefined;
     private _connecting: boolean = false;
+    private _connectionCount: number;
 
     static {
         GObject.registerClass(
@@ -197,6 +201,8 @@ export class Device extends GObject.Object {
         );
 
         this.agent = props.agent;
+
+        this._connectionCount = getDeviceConnectionCount(props.devicePath);
 
         this._loadProperties();
         this._setupPropertyChangeListener();
@@ -469,5 +475,9 @@ export class Device extends GObject.Object {
 
     get deviceType(): string {
         return getDeviceTypeFromClass(this.deviceClass);
+    }
+
+    get connectionCount(): number {
+        return this._connectionCount;
     }
 }

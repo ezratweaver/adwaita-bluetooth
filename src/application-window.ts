@@ -8,7 +8,6 @@ import { PinConfirmationDialog } from "./pin-confirmation-dialog.js";
 import Gio from "gi://Gio?version=2.0";
 
 export class Window extends Adw.ApplicationWindow {
-    private _menu_button!: Gtk.MenuButton;
     private _bluetooth_toggle!: Gtk.Switch;
     private _disabled_state!: Gtk.Box;
     private _disabled_header_label!: Gtk.Label;

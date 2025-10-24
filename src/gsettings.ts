@@ -25,3 +25,11 @@ export function incrementDeviceConnectionCount(devicePath: string): number {
 
     return deviceConnectionCount;
 }
+
+export function getDeviceConnectionCount(devicePath: string): number {
+    const deviceHistoryVariant = settings.get_value("device-history");
+
+    const deviceHistory = deviceHistoryVariant.deepUnpack() as DeviceHistory;
+
+    return deviceHistory[devicePath] ?? 0;
+}
