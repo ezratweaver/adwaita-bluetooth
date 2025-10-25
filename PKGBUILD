@@ -22,8 +22,7 @@ makedepends=(
 source=(
   "git+https://github.com/ezratweaver/${pkgname}#tag=${pkgver/[a-z]/.&}"
 )
-b2sums=('330e92db065cdcb78738fe4dd25a6d7efb47274ef4b8590f69c72ad7e0c744fea07b3485949c6b15e1e0b0196b1f977a76ab6b6d28b4a76501c4a55f0c273209'
-)
+b2sums=('75c9599d1fb69688754df976e43e53c252dc4ccc3ecd5de5c83dd90cfdf339f943a375f0607890b7215f8b81327943bd282a93008e10c5a03e8af4b10c5d8')
 
 build() {
   arch-meson $pkgname build
