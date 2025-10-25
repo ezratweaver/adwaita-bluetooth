@@ -28,6 +28,12 @@ A Bluetooth device manager built for tiling window managers like Hyprland and Ni
 
 ## Installation
 
+### Arch Linux (AUR)
+
+```bash
+yay -S adw-bluetooth
+```
+
 ### NixOS (Flake only)
 
 Add input to the flake:
