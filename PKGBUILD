@@ -20,7 +20,7 @@ makedepends=(
   typescript
 )
 source=(
-  "git+https://github.com/ezratweaver/${pkgname}#tag=${pkgver/[a-z]/.&}"
+  "git+https://github.com/ezratweaver/${pkgname}"
 )
 b2sums=('SKIP')
 
