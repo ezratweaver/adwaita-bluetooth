@@ -33,9 +33,9 @@
 
         # Change executable to adw-bluetooth on nixos, and then fix the entrypoint
         preFixup = ''
-          mv "$out/bin/com.eweaver.adw_bluetooth" "$out/bin/adw-bluetooth"
+          mv "$out/bin/com.eweaver.AdwBluetooth" "$out/bin/adw-bluetooth"
 
-          sed -i "1 a imports.package._findEffectiveEntryPointName = () => 'com.eweaver.adw_bluetooth';" "$out/bin/adw-bluetooth"
+          sed -i "1 a imports.package._findEffectiveEntryPointName = () => 'com.eweaver.AdwBluetooth';" "$out/bin/adw-bluetooth"
         '';
       };
 

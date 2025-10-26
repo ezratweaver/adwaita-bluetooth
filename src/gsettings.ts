@@ -7,7 +7,7 @@ interface DeviceHistory {
 }
 
 const settings = new Gio.Settings({
-    schema_id: "com.eweaver.adw_bluetooth",
+    schema_id: "com.eweaver.AdwBluetooth",
 });
 
 export function incrementDeviceConnectionCount(devicePath: string): number {

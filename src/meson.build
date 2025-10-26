@@ -17,8 +17,8 @@ typescript = custom_target(
 )
 
 src_res = gnome.compile_resources(
-  'com.eweaver.adw_bluetooth.src',
-  'com.eweaver.adw_bluetooth.src.gresource.xml',
+  'com.eweaver.AdwBluetooth.src',
+  'com.eweaver.AdwBluetooth.src.gresource.xml',
   dependencies: typescript,
   source_dir: tsc_out,
   gresource_bundle: true,
@@ -33,11 +33,11 @@ bin_conf.set('PACKAGE_NAME', meson.project_name())
 bin_conf.set('prefix', get_option('prefix'))
 bin_conf.set('libdir', join_paths(get_option('prefix'), get_option('libdir')))
 bin_conf.set('datadir', join_paths(get_option('prefix'), get_option('datadir')))
-bin_conf.set('resource_path', '/com/eweaver/adw_bluetooth')
+bin_conf.set('resource_path', '/com/eweaver/AdwBluetooth')
 
 app_launcher = configure_file(
-  input: 'com.eweaver.adw_bluetooth.in',
-  output: 'com.eweaver.adw_bluetooth',
+  input: 'com.eweaver.AdwBluetooth.in',
+  output: 'com.eweaver.AdwBluetooth',
   configuration: bin_conf,
   install: true,
   install_dir: get_option('bindir')
