@@ -31,5 +31,5 @@ build() {
 
 package() {
   meson install -C build --destdir "$pkgdir"
-  ln -s com.eweaver.AdwBluetooth "$pkgdir/usr/bin/adw-bluetooth"
+  ln -s com.ezratweaver.AdwBluetooth "$pkgdir/usr/bin/adw-bluetooth"
 }

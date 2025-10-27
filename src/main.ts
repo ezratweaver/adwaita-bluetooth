@@ -15,7 +15,7 @@ export class Application extends Adw.Application {
 
     constructor() {
         super({
-            application_id: "com.eweaver.AdwBluetooth",
+            application_id: "com.ezratweaver.AdwBluetooth",
             flags: Gio.ApplicationFlags.DEFAULT_FLAGS,
         });
 
@@ -38,7 +38,7 @@ export class Application extends Adw.Application {
 
         const provider = new Gtk.CssProvider();
         provider.load_from_resource(
-            "/com/eweaver/AdwBluetooth/styles/style.css",
+            "/com/ezratweaver/AdwBluetooth/styles/style.css",
         );
 
         const display = Gdk.Display.get_default();

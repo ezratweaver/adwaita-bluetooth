@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
-  <gresource prefix="/com/eweaver/AdwBluetooth/js">
+  <gresource prefix="/com/ezratweaver/AdwBluetooth/js">
     <file>main.js</file>
     <file>application-window.js</file>
     <file>device-details-modal.js</file>

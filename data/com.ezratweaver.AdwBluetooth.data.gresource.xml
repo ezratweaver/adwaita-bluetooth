@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
-  <gresource prefix="/com/eweaver/AdwBluetooth">
+  <gresource prefix="/com/ezratweaver/AdwBluetooth">
     <file>styles/style.css</file>
     <file preprocess="xml-stripblanks">ui/application-window.ui</file>
     <file preprocess="xml-stripblanks">ui/device-details-modal.ui</file>

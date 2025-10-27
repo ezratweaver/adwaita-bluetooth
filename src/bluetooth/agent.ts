@@ -12,7 +12,7 @@ interface AgentProps {
 
 export class BluetoothAgent extends GObject.Object {
     private systemBus: Gio.DBusConnection;
-    private agentPath: string = "/com/eweaver/AdwBluetooth/agent";
+    private agentPath: string = "/com/ezratweaver/AdwBluetooth/agent";
     private agentNodeInfo: Gio.DBusNodeInfo;
     private registrationId: number | null = null;
     private pendingRequests: Map<string, Gio.DBusMethodInvocation> = new Map();

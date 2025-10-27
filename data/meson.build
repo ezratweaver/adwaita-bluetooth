@@ -1,4 +1,4 @@
-gsettings_schema = 'com.eweaver.AdwBluetooth.gschema.xml'
+gsettings_schema = 'com.ezratweaver.AdwBluetooth.gschema.xml'
 
 # Compile schemas for development
 gnome.compile_schemas(depend_files: gsettings_schema)
@@ -31,8 +31,8 @@ blueprints = custom_target('blueprints',
 desktop_conf = configuration_data()
 
 desktop = configure_file(
-  input: 'com.eweaver.AdwBluetooth.desktop.in',
-  output: 'com.eweaver.AdwBluetooth.desktop',
+  input: 'com.ezratweaver.AdwBluetooth.desktop.in',
+  output: 'com.ezratweaver.AdwBluetooth.desktop',
   configuration: desktop_conf,
   install: true,
   install_dir: join_paths(get_option('datadir'), 'applications')
@@ -40,8 +40,8 @@ desktop = configure_file(
 
 # Compile GResources (UI, icons, etc.)
 data_res = gnome.compile_resources(
-  'com.eweaver.AdwBluetooth.data',
-  'com.eweaver.AdwBluetooth.data.gresource.xml',
+  'com.ezratweaver.AdwBluetooth.data',
+  'com.ezratweaver.AdwBluetooth.data.gresource.xml',
   gresource_bundle: true,
   install: true,
   install_dir: pkgdatadir,
