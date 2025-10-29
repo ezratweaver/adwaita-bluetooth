@@ -13,6 +13,7 @@ export class DeviceDetailsModal extends Adw.Window {
     private _paired_row!: Adw.ActionRow;
     private _type_row!: Adw.ActionRow;
     private _address_row!: Adw.ActionRow;
+    private _send_files_group!: Adw.PreferencesGroup;
     private _send_files_button!: Adw.ButtonRow;
     private _forget_button!: Adw.ButtonRow;
     private _device_icon!: Gtk.Image;
@@ -29,6 +30,7 @@ export class DeviceDetailsModal extends Adw.Window {
                     "paired_row",
                     "type_row",
                     "address_row",
+                    "send_files_group",
                     "send_files_button",
                     "forget_button",
                     "device_icon",
@@ -92,9 +94,9 @@ export class DeviceDetailsModal extends Adw.Window {
             return false;
         });
 
-        // Show send files button only if device supports its
+        // Show send files group only if device supports Object Push
         if (this.device.uuids.has(BluetoothUUID.OBJECT_PUSH)) {
-            this._send_files_button.set_visible(true);
+            this._send_files_group.set_visible(true);
         }
 
         this._send_files_button.connect("activated", () => {

@@ -77,7 +77,8 @@ template $Gjs_DeviceDetailsModal: Adw.Window {
       }
 
       Adw.PreferencesGroup {
-        ListBox {
+        ListBox send_files_group {
+          visible: false;
           selection-mode: none;
 
           styles [
@@ -86,12 +87,11 @@ template $Gjs_DeviceDetailsModal: Adw.Window {
 
           Adw.ButtonRow send_files_button {
             title: "Send Files...";
-            visible: false;
           }
-        }
-      }
 
-      Adw.PreferencesGroup {
+          margin-bottom: 10;
+        }
+
         ListBox {
           selection-mode: none;
 
