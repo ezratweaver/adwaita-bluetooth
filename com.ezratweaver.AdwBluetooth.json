@@ -17,7 +17,10 @@
         "--device=dri",
         "--socket=wayland",
         "--socket=fallback-x11",
-        "--env=GJS_DISABLE_JIT=1"
+        "--env=GJS_DISABLE_JIT=1",
+        "--system-talk-name=org.bluez",
+        "--talk-name=org.freedesktop.DBus",
+        "--talk-name=org.freedesktop.NetworkManager"
     ],
     "cleanup": [
         "/include",
