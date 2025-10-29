@@ -7,66 +7,9 @@ import {
     incrementDeviceConnectionCount,
     getDeviceConnectionCount,
 } from "../gsettings.js";
+import { getDeviceTypeFromClass } from "./device-metadata.js";
 
 export const DEVICE_INTERFACE = "org.bluez.Device1";
-
-export function getDeviceTypeFromClass(cod: number): string {
-    const major = (cod >> 8) & 0x1f;
-    const minor = (cod >> 2) & 0x3f;
-
-    switch (major) {
-        case 0x01: // Computer
-            switch (minor) {
-                case 0x03:
-                    return "Laptop";
-                case 0x04:
-                    return "Handheld PC/PDA";
-                case 0x06:
-                    return "Wearable Computer";
-                default:
-                    return "Computer";
-            }
-
-        case 0x02: // Phone
-            switch (minor) {
-                case 0x01:
-                    return "Cellular Phone";
-                case 0x03:
-                    return "Smartphone";
-                default:
-                    return "Phone";
-            }
-
-        case 0x04: // Audio/Video
-            switch (minor) {
-                case 0x01:
-                    return "Headset";
-                case 0x08:
-                    return "Speaker";
-                case 0x0c:
-                    return "Headphones";
-                case 0x10:
-                    return "Portable Audio";
-                case 0x14:
-                    return "Car Audio";
-                default:
-                    return "Audio Device";
-            }
-
-        case 0x05:
-            return "Peripheral";
-        case 0x06:
-            return "Imaging Device";
-        case 0x07:
-            return "Wearable";
-        case 0x08:
-            return "Toy";
-        case 0x09:
-            return "Health Device";
-        default:
-            return "Unknown Device";
-    }
-}
 
 interface DeviceProps {
     devicePath: string;
@@ -90,6 +33,7 @@ export class Device extends GObject.Object {
     private _trusted: boolean | undefined;
     private _class: number | undefined;
     private _icon: string | undefined;
+    private _uuids: string[] | undefined;
     private _connecting: boolean = false;
     private _connectionCount: number;
 
@@ -176,6 +120,12 @@ export class Device extends GObject.Object {
                         GObject.ParamFlags.READABLE,
                         "",
                     ),
+                    uuids: GObject.ParamSpec.jsobject(
+                        "uuids",
+                        "UUIDs",
+                        "Device UUIDs",
+                        GObject.ParamFlags.READABLE,
+                    ),
                 },
                 Signals: {
                     "device-changed": {},
@@ -226,6 +176,7 @@ export class Device extends GObject.Object {
         this._trusted = unpackProperty<boolean>("Trusted");
         this._class = unpackProperty<number>("Class");
         this._icon = unpackProperty<string>("Icon");
+        this._uuids = unpackProperty<string[]>("UUIDs");
     }
 
     private _setupPropertyChangeListener(): void {
@@ -243,6 +194,7 @@ export class Device extends GObject.Object {
                 Trusted: "_trusted",
                 Class: "_class",
                 Icon: "_icon",
+                UUIDs: "_uuids",
             };
 
             for (const [dbusProp, privateProp] of Object.entries(propertyMap)) {
@@ -256,12 +208,15 @@ export class Device extends GObject.Object {
                         dbusProp === "Trusted";
 
                     const isNumber = dbusProp === "Class";
+                    const isStringArray = dbusProp === "UUIDs";
 
                     const newValue = isBoolean
                         ? changedValue.get_boolean()
                         : isNumber
                           ? changedValue.get_uint32()
-                          : changedValue.get_string()[0];
+                          : isStringArray
+                            ? changedValue.get_strv()
+                            : changedValue.get_string()[0];
 
                     if ((this as any)[privateProp] !== newValue) {
                         (this as any)[privateProp] = newValue;
@@ -480,5 +435,9 @@ export class Device extends GObject.Object {
 
     get connectionCount(): number {
         return this._connectionCount;
+    }
+
+    get uuids(): Set<string> {
+        return new Set(this._uuids ?? []);
     }
 }

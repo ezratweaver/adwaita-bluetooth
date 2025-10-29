@@ -84,6 +84,21 @@ template $Gjs_DeviceDetailsModal: Adw.Window {
             "boxed-list",
           ]
 
+          Adw.ButtonRow send_files_button {
+            title: "Send Files...";
+            visible: false;
+          }
+        }
+      }
+
+      Adw.PreferencesGroup {
+        ListBox {
+          selection-mode: none;
+
+          styles [
+            "boxed-list",
+          ]
+
           Adw.ButtonRow forget_button {
             title: "Forget Device...";
 

@@ -3,6 +3,7 @@ import GObject from "gi://GObject";
 import Gtk from "gi://Gtk?version=4.0";
 import { Device } from "./bluetooth/device.js";
 import { Adapter } from "./bluetooth/adapter.js";
+import { BluetoothUUID } from "./bluetooth/device-metadata.js";
 
 export class DeviceDetailsModal extends Adw.Window {
     private device: Device;
@@ -12,6 +13,7 @@ export class DeviceDetailsModal extends Adw.Window {
     private _paired_row!: Adw.ActionRow;
     private _type_row!: Adw.ActionRow;
     private _address_row!: Adw.ActionRow;
+    private _send_files_button!: Adw.ButtonRow;
     private _forget_button!: Adw.ButtonRow;
     private _device_icon!: Gtk.Image;
     private _device_name!: Gtk.Label;
@@ -27,6 +29,7 @@ export class DeviceDetailsModal extends Adw.Window {
                     "paired_row",
                     "type_row",
                     "address_row",
+                    "send_files_button",
                     "forget_button",
                     "device_icon",
                     "device_name",
@@ -89,6 +92,15 @@ export class DeviceDetailsModal extends Adw.Window {
             return false;
         });
 
+        // Show send files button only if device supports its
+        if (this.device.uuids.has(BluetoothUUID.OBJECT_PUSH)) {
+            this._send_files_button.set_visible(true);
+        }
+
+        this._send_files_button.connect("activated", () => {
+            this.showFilePicker();
+        });
+
         this._forget_button.connect("activated", () => {
             this.showForgetDialog();
         });
@@ -115,5 +127,9 @@ export class DeviceDetailsModal extends Adw.Window {
         });
 
         dialog.present(this);
+    }
+
+    private showFilePicker(): void {
+        // TODO: Implement file sending functionality
     }
 }

@@ -9,6 +9,7 @@
     <file>bluetooth/bluetooth.js</file>
     <file>bluetooth/adapter.js</file>
     <file>bluetooth/device.js</file>
+    <file>bluetooth/device-metadata.js</file>
     <file>bluetooth/agent.js</file>
   </gresource>
 </gresources>
