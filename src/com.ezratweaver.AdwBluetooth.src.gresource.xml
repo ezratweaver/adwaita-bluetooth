@@ -11,5 +11,6 @@
     <file>bluetooth/device.js</file>
     <file>bluetooth/device-metadata.js</file>
     <file>bluetooth/agent.js</file>
+    <file>bluetooth/obex.js</file>
   </gresource>
 </gresources>

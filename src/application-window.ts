@@ -516,16 +516,6 @@ export class Window extends Adw.ApplicationWindow {
     }
 
     vfunc_close_request(): boolean {
-        if (this._bluetoothManager.adapter) {
-            this._bluetoothManager.adapter.bluetoothAgent.unregister();
-
-            for (const device of this._bluetoothManager.adapter.devices) {
-                if (device.connecting) {
-                    // If we are mid connecting a device, close that connection
-                    device.disconnectDevice();
-                }
-            }
-        }
         this._bluetoothManager.destroy();
         return super.vfunc_close_request();
     }
