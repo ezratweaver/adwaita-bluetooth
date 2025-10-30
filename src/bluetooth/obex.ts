@@ -161,13 +161,11 @@ export class ObexManager extends GObject.Object {
         let sessionPath: string | null = null;
 
         try {
-            // Create session
             sessionPath = await this.createSession(deviceAddress);
             if (!sessionPath) {
                 throw new Error("Failed to create OBEX session");
             }
 
-            // Create ObjectPush proxy for the session
             const objectPushProxy = Gio.DBusProxy.new_sync(
                 sessionBus,
                 Gio.DBusProxyFlags.NONE,
@@ -178,7 +176,6 @@ export class ObexManager extends GObject.Object {
                 null,
             );
 
-            // Start file transfer
             const result = await new Promise<any>((resolve, reject) => {
                 objectPushProxy.call(
                     "SendFile",

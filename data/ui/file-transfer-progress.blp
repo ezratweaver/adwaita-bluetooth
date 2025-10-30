@@ -1,0 +1,98 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $Gjs_FileTransferProgressDialog: Adw.Dialog {
+  content-width: 450;
+  content-height: 200;
+
+  child: Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      show-end-title-buttons: false;
+
+      title-widget: Label {
+        label: "Bluetooth File Transfer";
+
+        css-classes: [
+          "heading",
+        ];
+      };
+
+      [start]
+      Button cancel_button {
+        label: "Cancel";
+      }
+
+      css-classes: [
+        "file-transfer-header",
+      ];
+    }
+
+    content: Box {
+      orientation: vertical;
+      spacing: 20;
+      margin-top: 30;
+      margin-bottom: 24;
+      margin-start: 12;
+      margin-end: 12;
+
+      Box {
+        orientation: vertical;
+        spacing: 12;
+
+        Box {
+          orientation: horizontal;
+          spacing: 8;
+
+          Label {
+            label: "From:";
+            halign: start;
+
+            styles [
+              "heading",
+            ]
+          }
+
+          Label from_label {
+            halign: start;
+            hexpand: true;
+            ellipsize: middle;
+
+            styles [
+              "body",
+            ]
+          }
+        }
+
+        Box {
+          orientation: horizontal;
+          spacing: 8;
+
+          Label {
+            margin-start: 24;
+            label: "To:";
+            halign: start;
+
+            styles [
+              "heading",
+            ]
+          }
+
+          Label to_label {
+            halign: start;
+            hexpand: true;
+            ellipsize: end;
+
+            styles [
+              "body",
+            ]
+          }
+        }
+      }
+
+      ProgressBar progress_bar {
+        hexpand: true;
+      }
+    };
+  };
+}

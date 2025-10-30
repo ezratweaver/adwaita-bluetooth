@@ -1,9 +1,11 @@
 import Adw from "gi://Adw";
 import GObject from "gi://GObject";
 import Gtk from "gi://Gtk?version=4.0";
+import Gio from "gi://Gio?version=2.0";
 import { Device } from "./bluetooth/device.js";
 import { Adapter } from "./bluetooth/adapter.js";
 import { BluetoothUUID } from "./bluetooth/device-metadata.js";
+import { FileTransferProgressDialog } from "./file-transfer-progress-dialog.js";
 
 export class DeviceDetailsModal extends Adw.Window {
     private device: Device;
@@ -139,6 +141,125 @@ export class DeviceDetailsModal extends Adw.Window {
     }
 
     private showFilePicker(): void {
-        // TODO: Implement file sending functionality
+        const fileDialog = new Gtk.FileDialog({
+            title: "Choose file to send",
+            modal: true,
+        });
+
+        fileDialog.open(this, null, (dialog, result) => {
+            try {
+                const file = dialog?.open_finish(result);
+                if (file) {
+                    this.sendFile(file);
+                }
+            } catch (error: any) {
+                if (error.code !== Gio.IOErrorEnum.CANCELLED) {
+                    log(`File dialog error: ${error}`);
+                }
+            }
+        });
+    }
+
+    private async sendFile(file: Gio.File): Promise<void> {
+        const obexManager = this.adapter.obexManager;
+        if (!obexManager) {
+            this.showDialog(
+                "OBEX not available",
+                "File sending is not supported on this system.",
+            );
+            return;
+        }
+
+        const filePath = file.get_path();
+        if (!filePath) {
+            this.showDialog("Invalid file", "Could not get file path.");
+            return;
+        }
+
+        const filename = file.get_basename() ?? "unknown file";
+
+        // Show progress dialog
+        const progressDialog = new FileTransferProgressDialog(
+            filePath,
+            this.device.alias,
+        );
+
+        let transferPath: string | null = null;
+
+        const progressId = obexManager.connect(
+            "transfer-progress",
+            (_, path: string, transferred: number, total: number) => {
+                if (path === transferPath) {
+                    progressDialog.updateProgress(transferred, total);
+                }
+            },
+        );
+
+        const completedId = obexManager.connect(
+            "transfer-completed",
+            (_, path: string) => {
+                if (path === transferPath) {
+                    progressDialog.close();
+                    this.showDialog(
+                        "File sent successfully",
+                        `"${filename}" was sent to ${this.device.alias}.`,
+                    );
+                }
+            },
+        );
+
+        const failedId = obexManager.connect(
+            "transfer-failed",
+            (_, path: string, error: string) => {
+                if (path === transferPath) {
+                    progressDialog.close();
+                    this.showDialog(
+                        "Transfer failed",
+                        `Failed to send "${filename}": ${error}`,
+                    );
+                }
+            },
+        );
+
+        progressDialog.connect("cancelled", () => {
+            if (transferPath) {
+                obexManager.cancelTransfer(transferPath);
+            }
+
+            obexManager.disconnect(progressId);
+            obexManager.disconnect(completedId);
+            obexManager.disconnect(failedId);
+        });
+
+        progressDialog.present(this);
+
+        try {
+            transferPath = await obexManager.sendFile(
+                this.device.address,
+                filePath,
+            );
+            if (!transferPath) {
+                progressDialog.close();
+                this.showDialog(
+                    "Transfer failed",
+                    "Could not start file transfer.",
+                );
+            }
+        } catch (error) {
+            progressDialog.close();
+            this.showDialog(
+                "Transfer failed",
+                `Failed to send file: ${error}`,
+            );
+        }
+    }
+
+    private showDialog(heading: string, body: string): void {
+        const dialog = new Adw.AlertDialog({
+            heading,
+            body,
+        });
+        dialog.add_response("ok", "OK");
+        dialog.present(this);
     }
 }
