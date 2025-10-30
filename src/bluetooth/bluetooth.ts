@@ -30,9 +30,7 @@ export class BluetoothManager {
 
             if (firstAdapter) {
                 try {
-                    this._adapter = new Adapter({
-                        adapterPath: firstAdapter,
-                    });
+                    this._adapter = new Adapter(firstAdapter);
                 } catch (e) {
                     log(`Error occured while initializing Adapter: ${e}`);
                 }

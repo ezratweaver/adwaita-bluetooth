@@ -12,10 +12,6 @@ import { BluetoothAgent } from "./agent.js";
 
 export const ADAPTER_INTERFACE = "org.bluez.Adapter1";
 
-interface AdapterProps {
-    adapterPath: string;
-}
-
 export class Adapter extends GObject.Object {
     private adapterPath: string;
     private devicePaths: string[] = [];
@@ -60,9 +56,9 @@ export class Adapter extends GObject.Object {
         );
     }
 
-    constructor(props: AdapterProps) {
+    constructor(adapterPath: string) {
         super();
-        this.adapterPath = props.adapterPath;
+        this.adapterPath = adapterPath;
 
         this.adapterProxy = Gio.DBusProxy.new_sync(
             systemBus,
