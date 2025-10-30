@@ -85,7 +85,10 @@ export class DeviceDetailsModal extends Adw.Window {
                 if (this.adapter.discovering) {
                     this.adapter.stopDiscovery();
                 }
-                device.connectDevice().catch(() => {
+                device.connectDevice().catch((error) => {
+                    log(
+                        `An error occured trying to connect to device: ${error}`,
+                    );
                     this._connection_switch.set_active(false); // Ensure switch is off
                     device.disconnectDevice(); // Explicity cut connection when timeout/failure occurs
                 });
