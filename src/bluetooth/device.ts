@@ -1,7 +1,7 @@
 import Gio from "gi://Gio?version=2.0";
 import GObject from "gi://GObject?version=2.0";
 import GLib from "gi://GLib?version=2.0";
-import { BLUEZ_SERVICE, DBUS_PROPERTIES_SET } from "./bluetooth.js";
+import { BLUEZ_SERVICE, DBUS_PROPERTIES_SET, systemBus } from "./bluetooth.js";
 import { BluetoothAgent } from "./agent.js";
 import {
     incrementDeviceConnectionCount,
@@ -13,12 +13,10 @@ export const DEVICE_INTERFACE = "org.bluez.Device1";
 
 interface DeviceProps {
     devicePath: string;
-    systemBus: Gio.DBusConnection;
     agent: BluetoothAgent;
 }
 
 export class Device extends GObject.Object {
-    private systemBus: Gio.DBusConnection;
     private deviceProxy: Gio.DBusProxy;
     private agent: BluetoothAgent;
 
@@ -137,11 +135,10 @@ export class Device extends GObject.Object {
 
     constructor(props: DeviceProps) {
         super();
-        this.systemBus = props.systemBus;
         this._devicePath = props.devicePath;
 
         this.deviceProxy = Gio.DBusProxy.new_sync(
-            this.systemBus,
+            systemBus,
             Gio.DBusProxyFlags.NONE,
             null,
             BLUEZ_SERVICE,

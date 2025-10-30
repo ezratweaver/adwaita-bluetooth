@@ -6,17 +6,17 @@ export const BLUEZ_SERVICE = "org.bluez";
 export const DBUS_OBJECT_MANAGER = "org.freedesktop.DBus.ObjectManager";
 export const DBUS_PROPERTIES_SET = "org.freedesktop.DBus.Properties.Set";
 
+export const systemBus = Gio.bus_get_sync(Gio.BusType.SYSTEM, null);
+
 export interface ErrorPopUp {
     title: string;
     description: string;
 }
 
 export class BluetoothManager {
-    private systemBus: Gio.DBusConnection;
     private _adapter: Adapter | null = null;
 
     constructor() {
-        this.systemBus = Gio.bus_get_sync(Gio.BusType.SYSTEM, null);
         this._initialize();
     }
 
@@ -30,7 +30,6 @@ export class BluetoothManager {
             if (firstAdapter) {
                 try {
                     this._adapter = new Adapter({
-                        systemBus: this.systemBus,
                         adapterPath: firstAdapter,
                     });
                 } catch (e) {

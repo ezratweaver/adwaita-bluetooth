@@ -1,17 +1,12 @@
 import Gio from "gi://Gio?version=2.0";
 import GLib from "gi://GLib?version=2.0";
 import GObject from "gi://GObject?version=2.0";
-import { BLUEZ_SERVICE } from "./bluetooth.js";
+import { BLUEZ_SERVICE, systemBus } from "./bluetooth.js";
 
 export const AGENT_INTERFACE = "org.bluez.Agent1";
 export const AGENT_MANAGER_INTERFACE = "org.bluez.AgentManager1";
 
-interface AgentProps {
-    systemBus: Gio.DBusConnection;
-}
-
 export class BluetoothAgent extends GObject.Object {
-    private systemBus: Gio.DBusConnection;
     private agentPath: string = "/com/ezratweaver/AdwBluetooth/agent";
     private agentNodeInfo: Gio.DBusNodeInfo;
     private registrationId: number | null = null;
@@ -44,9 +39,8 @@ export class BluetoothAgent extends GObject.Object {
         );
     }
 
-    constructor(props: AgentProps) {
+    constructor() {
         super();
-        this.systemBus = props.systemBus;
 
         const agentXml = `
             <node>
@@ -98,7 +92,7 @@ export class BluetoothAgent extends GObject.Object {
             throw new Error("Failed to lookup Agent interface");
         }
 
-        this.registrationId = this.systemBus.register_object(
+        this.registrationId = systemBus.register_object(
             this.agentPath,
             agentInterface,
             this._handleMethodCall.bind(this),
@@ -107,7 +101,7 @@ export class BluetoothAgent extends GObject.Object {
         );
 
         // Register agent with BlueZ
-        this.systemBus.call_sync(
+        systemBus.call_sync(
             BLUEZ_SERVICE,
             "/org/bluez",
             AGENT_MANAGER_INTERFACE,
@@ -120,7 +114,7 @@ export class BluetoothAgent extends GObject.Object {
         );
 
         // Request default agent
-        this.systemBus.call_sync(
+        systemBus.call_sync(
             BLUEZ_SERVICE,
             "/org/bluez",
             AGENT_MANAGER_INTERFACE,
@@ -135,11 +129,11 @@ export class BluetoothAgent extends GObject.Object {
 
     public unregister(): void {
         if (this.registrationId) {
-            this.systemBus.unregister_object(this.registrationId);
+            systemBus.unregister_object(this.registrationId);
             this.registrationId = null;
 
             try {
-                this.systemBus.call_sync(
+                systemBus.call_sync(
                     BLUEZ_SERVICE,
                     "/org/bluez",
                     AGENT_MANAGER_INTERFACE,

@@ -6,6 +6,7 @@ import {
     BLUEZ_SERVICE,
     DBUS_OBJECT_MANAGER,
     DBUS_PROPERTIES_SET,
+    systemBus,
 } from "./bluetooth.js";
 import { BluetoothAgent } from "./agent.js";
 
@@ -13,11 +14,9 @@ export const ADAPTER_INTERFACE = "org.bluez.Adapter1";
 
 interface AdapterProps {
     adapterPath: string;
-    systemBus: Gio.DBusConnection;
 }
 
 export class Adapter extends GObject.Object {
-    private systemBus: Gio.DBusConnection;
     private adapterPath: string;
     private devicePaths: string[] = [];
     private adapterProxy: Gio.DBusProxy;
@@ -63,11 +62,10 @@ export class Adapter extends GObject.Object {
 
     constructor(props: AdapterProps) {
         super();
-        this.systemBus = props.systemBus;
         this.adapterPath = props.adapterPath;
 
         this.adapterProxy = Gio.DBusProxy.new_sync(
-            this.systemBus,
+            systemBus,
             Gio.DBusProxyFlags.NONE,
             null,
             BLUEZ_SERVICE,
@@ -76,7 +74,7 @@ export class Adapter extends GObject.Object {
             null,
         );
 
-        this.agent = new BluetoothAgent({ systemBus: this.systemBus });
+        this.agent = new BluetoothAgent();
 
         this._loadProperties();
         this._setupPropertyChangeListener();
@@ -117,7 +115,7 @@ export class Adapter extends GObject.Object {
     }
 
     private _syncSavedDevices(): void {
-        this.systemBus.signal_subscribe(
+        systemBus.signal_subscribe(
             BLUEZ_SERVICE,
             DBUS_OBJECT_MANAGER,
             "InterfacesAdded",
@@ -139,7 +137,6 @@ export class Adapter extends GObject.Object {
                     let newDevice: Device;
                     try {
                         newDevice = new Device({
-                            systemBus: this.systemBus,
                             agent: this.agent,
                             devicePath: path,
                         });
@@ -159,7 +156,7 @@ export class Adapter extends GObject.Object {
             },
         );
 
-        this.systemBus.signal_subscribe(
+        systemBus.signal_subscribe(
             BLUEZ_SERVICE,
             DBUS_OBJECT_MANAGER,
             "InterfacesRemoved",
@@ -193,7 +190,7 @@ export class Adapter extends GObject.Object {
             },
         );
 
-        const result = this.systemBus.call_sync(
+        const result = systemBus.call_sync(
             BLUEZ_SERVICE,
             "/",
             DBUS_OBJECT_MANAGER,
@@ -221,7 +218,6 @@ export class Adapter extends GObject.Object {
                     device = new Device({
                         devicePath: path,
                         agent: this.agent,
-                        systemBus: this.systemBus,
                     });
                 } catch (e) {
                     log(
