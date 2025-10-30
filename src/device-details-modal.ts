@@ -99,7 +99,10 @@ export class DeviceDetailsModal extends Adw.Window {
         });
 
         // Show send files group only if device supports Object Push
-        if (this.device.uuids.has(BluetoothUUID.OBJECT_PUSH)) {
+        if (
+            this.device.uuids.has(BluetoothUUID.OBJECT_PUSH) &&
+            this.device.connected
+        ) {
             this._send_files_group.set_visible(true);
         }
 
