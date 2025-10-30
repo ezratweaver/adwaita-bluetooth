@@ -137,7 +137,8 @@ export class Adapter extends GObject.Object {
                     let newDevice: Device;
                     try {
                         newDevice = new Device({
-                            agent: this.agent,
+                            blockAgent: this.agent.blockAgent.bind(this.agent),
+                            freeAgent: this.agent.freeAgent.bind(this.agent),
                             devicePath: path,
                         });
                     } catch (e) {
@@ -217,7 +218,8 @@ export class Adapter extends GObject.Object {
                 try {
                     device = new Device({
                         devicePath: path,
-                        agent: this.agent,
+                        blockAgent: this.agent.blockAgent.bind(this.agent),
+                        freeAgent: this.agent.freeAgent.bind(this.agent),
                     });
                 } catch (e) {
                     log(

@@ -2,7 +2,6 @@ import Gio from "gi://Gio?version=2.0";
 import GObject from "gi://GObject?version=2.0";
 import GLib from "gi://GLib?version=2.0";
 import { BLUEZ_SERVICE, DBUS_PROPERTIES_SET, systemBus } from "./bluetooth.js";
-import { BluetoothAgent } from "./agent.js";
 import {
     incrementDeviceConnectionCount,
     getDeviceConnectionCount,
@@ -13,12 +12,14 @@ export const DEVICE_INTERFACE = "org.bluez.Device1";
 
 interface DeviceProps {
     devicePath: string;
-    agent: BluetoothAgent;
+    blockAgent: () => void;
+    freeAgent: () => void;
 }
 
 export class Device extends GObject.Object {
     private deviceProxy: Gio.DBusProxy;
-    private agent: BluetoothAgent;
+    private blockAgent: () => void;
+    private freeAgent: () => void;
 
     private _devicePath: string;
     private _address: string | undefined;
@@ -147,7 +148,8 @@ export class Device extends GObject.Object {
             null,
         );
 
-        this.agent = props.agent;
+        this.blockAgent = props.blockAgent;
+        this.freeAgent = props.freeAgent;
 
         this._connectionCount = getDeviceConnectionCount(props.devicePath);
 
@@ -351,7 +353,7 @@ export class Device extends GObject.Object {
 
         try {
             // Block agent from use with other devices until we're done pairing
-            this.agent.blockAgent();
+            this.blockAgent();
             this._setConnecting(true);
 
             await new Promise<void>((resolve, reject) => {
@@ -372,7 +374,7 @@ export class Device extends GObject.Object {
                 );
             });
         } finally {
-            this.agent.freeAgent();
+            this.freeAgent();
             this._setConnecting(false);
         }
     }

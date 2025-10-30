@@ -7,6 +7,7 @@ export const DBUS_OBJECT_MANAGER = "org.freedesktop.DBus.ObjectManager";
 export const DBUS_PROPERTIES_SET = "org.freedesktop.DBus.Properties.Set";
 
 export const systemBus = Gio.bus_get_sync(Gio.BusType.SYSTEM, null);
+export const sessionBus = Gio.bus_get_sync(Gio.BusType.SESSION, null);
 
 export interface ErrorPopUp {
     title: string;
