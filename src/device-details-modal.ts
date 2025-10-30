@@ -80,15 +80,16 @@ export class DeviceDetailsModal extends Adw.Window {
             GObject.BindingFlags.SYNC_CREATE,
         );
 
-        this._connection_switch.connect("state-set", (_, state) => {
-            if (state && !device.connected) {
+        this._connection_switch.connect("state-set", (_, switchTurnedOn) => {
+            if (switchTurnedOn && !device.connected) {
                 if (this.adapter.discovering) {
                     this.adapter.stopDiscovery();
                 }
                 device.connectDevice().catch(() => {
-                    // Silently fail
+                    this._connection_switch.set_active(false); // Ensure switch is off
+                    device.disconnectDevice(); // Explicity cut connection when timeout/failure occurs
                 });
-            } else if (!state && device.connected) {
+            } else if (!switchTurnedOn && device.connected) {
                 device.disconnectDevice();
             }
             return false;
