@@ -10,7 +10,7 @@ export const OBEX_OBJECT_PUSH_INTERFACE = "org.bluez.obex.ObjectPush1";
 
 export class ObexManager extends GObject.Object {
     private clientProxy: Gio.DBusProxy;
-    private activeTransfers: Map<string, Gio.DBusProxy> = new Map();
+    private activeTransfers: Map<string, Gio.DBusProxy> = new Map(); // transferPath -> transferProxy
 
     static {
         GObject.registerClass(
@@ -154,18 +154,11 @@ export class ObexManager extends GObject.Object {
         });
     }
 
-    public async sendFile(
-        deviceAddress: string,
+    public async sendFileWithSession(
+        sessionPath: string,
         filePath: string,
     ): Promise<string | null> {
-        let sessionPath: string | null = null;
-
         try {
-            sessionPath = await this.createSession(deviceAddress);
-            if (!sessionPath) {
-                throw new Error("Failed to create OBEX session");
-            }
-
             const objectPushProxy = Gio.DBusProxy.new_sync(
                 sessionBus,
                 Gio.DBusProxyFlags.NONE,
@@ -220,16 +213,6 @@ export class ObexManager extends GObject.Object {
             return transferPath;
         } catch (error) {
             log(`Failed to send file: ${error}`);
-
-            // Clean up session if it was created
-            if (sessionPath) {
-                try {
-                    await this.removeSession(sessionPath);
-                } catch (e) {
-                    log(`Failed to clean up session: ${e}`);
-                }
-            }
-
             return null;
         }
     }

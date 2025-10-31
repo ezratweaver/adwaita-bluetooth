@@ -6,6 +6,7 @@ import { Device } from "./bluetooth/device.js";
 import { Adapter } from "./bluetooth/adapter.js";
 import { BluetoothUUID } from "./bluetooth/device-metadata.js";
 import { FileTransferProgressDialog } from "./file-transfer-progress-dialog.js";
+import { ObexManager } from "./bluetooth/obex.js";
 
 export class DeviceDetailsModal extends Adw.Window {
     private device: Device;
@@ -178,6 +179,18 @@ export class DeviceDetailsModal extends Adw.Window {
 
         const filename = file.get_basename() ?? "unknown file";
 
+        const sessionPath = await obexManager.createSession(
+            this.device.address,
+        );
+
+        if (!sessionPath) {
+            this.showDialog(
+                "Connection failed",
+                "Could not establish connection to device.",
+            );
+            return;
+        }
+
         const progressDialog = new FileTransferProgressDialog(
             filePath,
             this.device.alias,
@@ -191,6 +204,14 @@ export class DeviceDetailsModal extends Adw.Window {
             signalIds = [];
         };
 
+        const cleanupSession = async () => {
+            try {
+                await obexManager.removeSession(sessionPath);
+            } catch (error) {
+                log(`Failed to cleanup session: ${error}`);
+            }
+        };
+
         const attemptTransfer = async () => {
             progressDialog.hideError();
 
@@ -200,7 +221,6 @@ export class DeviceDetailsModal extends Adw.Window {
             }
 
             cleanupSignals();
-
             progressDialog.updateProgress(0, 1);
 
             signalIds.push(
@@ -221,6 +241,7 @@ export class DeviceDetailsModal extends Adw.Window {
                             `"${filename}" was sent to ${this.device.alias}.`,
                         );
                         cleanupSignals();
+                        cleanupSession();
                     }
                 }),
 
@@ -237,10 +258,11 @@ export class DeviceDetailsModal extends Adw.Window {
             );
 
             try {
-                transferPath = await obexManager.sendFile(
-                    this.device.address,
+                transferPath = await obexManager.sendFileWithSession(
+                    sessionPath,
                     filePath,
                 );
+
                 if (!transferPath) {
                     progressDialog.showError("Could not start file transfer.");
                 }
@@ -254,6 +276,7 @@ export class DeviceDetailsModal extends Adw.Window {
                 obexManager.cancelTransfer(transferPath);
             }
             cleanupSignals();
+            cleanupSession();
         });
 
         progressDialog.connect("retry", attemptTransfer);
