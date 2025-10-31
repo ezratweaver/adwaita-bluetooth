@@ -6,7 +6,6 @@ import { Device } from "./bluetooth/device.js";
 import { Adapter } from "./bluetooth/adapter.js";
 import { BluetoothUUID } from "./bluetooth/device-metadata.js";
 import { FileTransferProgressDialog } from "./file-transfer-progress-dialog.js";
-import { ObexManager } from "./bluetooth/obex.js";
 
 export class DeviceDetailsModal extends Adw.Window {
     private device: Device;
@@ -143,16 +142,23 @@ export class DeviceDetailsModal extends Adw.Window {
 
     private showFilePicker(): void {
         const fileDialog = new Gtk.FileDialog({
-            title: "Choose file to send",
+            title: "Choose files to send",
             modal: true,
         });
 
-        fileDialog.open(this, null, (dialog, result) => {
+        fileDialog.open_multiple(this, null, async (dialog, result) => {
             try {
-                const file = dialog?.open_finish(result);
-                if (file) {
-                    this.sendFile(file);
+                const files = dialog?.open_multiple_finish(result);
+                if (!files || files.get_n_items() === 0) {
+                    return;
                 }
+
+                const fileArray: Gio.File[] = [];
+                for (let i = 0; i < files.get_n_items(); i++) {
+                    fileArray.push(files.get_item(i) as Gio.File);
+                }
+
+                await this.sendFiles(fileArray);
             } catch (error: any) {
                 if (error.code !== Gio.IOErrorEnum.CANCELLED) {
                     log(`File dialog error: ${error}`);
@@ -161,7 +167,7 @@ export class DeviceDetailsModal extends Adw.Window {
         });
     }
 
-    private async sendFile(file: Gio.File): Promise<void> {
+    private async sendFiles(files: Gio.File[]): Promise<void> {
         const obexManager = this.adapter.obexManager;
         if (!obexManager) {
             this.showDialog(
@@ -170,14 +176,6 @@ export class DeviceDetailsModal extends Adw.Window {
             );
             return;
         }
-
-        const filePath = file.get_path();
-        if (!filePath) {
-            this.showDialog("Invalid file", "Could not get file path.");
-            return;
-        }
-
-        const filename = file.get_basename() ?? "unknown file";
 
         const sessionPath = await obexManager.createSession(
             this.device.address,
@@ -191,13 +189,13 @@ export class DeviceDetailsModal extends Adw.Window {
             return;
         }
 
-        const progressDialog = new FileTransferProgressDialog(
-            filePath,
-            this.device.alias,
-        );
-
+        let currentFileIndex = 0;
         let transferPath: string | null = null;
         let signalIds: number[] = [];
+
+        const progressDialog = new FileTransferProgressDialog(
+            this.device.alias,
+        );
 
         const cleanupSignals = () => {
             signalIds.forEach((id) => obexManager.disconnect(id));
@@ -212,15 +210,35 @@ export class DeviceDetailsModal extends Adw.Window {
             }
         };
 
-        const attemptTransfer = async () => {
-            progressDialog.hideError();
+        const processNextFile = async (): Promise<void> => {
+            // Clear up signals from last transfer
+            cleanupSignals();
 
-            if (transferPath) {
-                obexManager.cancelTransfer(transferPath);
-                transferPath = null;
+            // Check to see if we're done
+            if (currentFileIndex >= files.length) {
+                progressDialog.close();
+                const message =
+                    files.length === 1
+                        ? `"${files[0].get_basename()}" was sent to ${this.device.alias}.`
+                        : `${files.length} files were sent to ${this.device.alias}.`;
+                this.showDialog("Files sent successfully", message);
+                cleanupSignals();
+                cleanupSession();
+                return;
             }
 
-            cleanupSignals();
+            const currentFile = files[currentFileIndex];
+            const currentFilePath = currentFile.get_path();
+            const currentFilename = currentFile.get_basename();
+
+            if (!currentFilePath || !currentFilename) {
+                // Skip invalid files
+                currentFileIndex++;
+                return processNextFile();
+            }
+
+            progressDialog.hideError();
+            progressDialog.updateCurrentFile(currentFilePath);
             progressDialog.updateProgress(0, 1);
 
             signalIds.push(
@@ -235,21 +253,18 @@ export class DeviceDetailsModal extends Adw.Window {
 
                 obexManager.connect("transfer-completed", (_, path: string) => {
                     if (path === transferPath) {
-                        progressDialog.close();
-                        this.showDialog(
-                            "File sent successfully",
-                            `"${filename}" was sent to ${this.device.alias}.`,
-                        );
-                        cleanupSignals();
-                        cleanupSession();
+                        currentFileIndex++;
+                        processNextFile();
                     }
                 }),
 
                 obexManager.connect("transfer-failed", (_, path: string) => {
                     if (path === transferPath) {
-                        progressDialog.showError(
-                            "Make sure that the remote device is switched on and that it accepts Bluetooth connections",
-                        );
+                        const message =
+                            files.length === 1
+                                ? "Make sure that the remote device is switched on and that it accepts Bluetooth connections"
+                                : `Failed to send "${currentFilename}". Click retry to continue with remaining files.`;
+                        progressDialog.showError(message);
                     }
                 }),
             );
@@ -257,14 +272,22 @@ export class DeviceDetailsModal extends Adw.Window {
             try {
                 transferPath = await obexManager.sendFileWithSession(
                     sessionPath,
-                    filePath,
+                    currentFilePath,
                 );
 
                 if (!transferPath) {
-                    progressDialog.showError("Could not start file transfer.");
+                    const message =
+                        files.length === 1
+                            ? "Could not start file transfer."
+                            : `Could not start transfer for "${currentFilename}".`;
+                    progressDialog.showError(message);
                 }
             } catch (error) {
-                progressDialog.showError(`Failed to send file: ${error}`);
+                const message =
+                    files.length === 1
+                        ? `Failed to send file: ${error}`
+                        : `Failed to send "${currentFilename}": ${error}`;
+                progressDialog.showError(message);
             }
         };
 
@@ -276,10 +299,11 @@ export class DeviceDetailsModal extends Adw.Window {
             cleanupSession();
         });
 
-        progressDialog.connect("retry", attemptTransfer);
+        progressDialog.connect("retry", () => processNextFile());
 
         progressDialog.present(this);
-        await attemptTransfer();
+
+        await processNextFile();
     }
 
     private showDialog(heading: string, body: string): void {
