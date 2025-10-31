@@ -58,11 +58,13 @@ export class FileTransferProgressDialog extends Adw.Dialog {
     public showError(error: string): void {
         this._error_label.set_text(error);
         this._error_box.set_visible(true);
+        this._retry_button.set_sensitive(true);
         this._retry_button.set_visible(true);
     }
 
     public hideError(): void {
         this._error_box.set_visible(false);
+        this._retry_button.set_sensitive(false);
         this._retry_button.set_visible(false);
     }
 }
