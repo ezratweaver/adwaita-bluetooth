@@ -30,7 +30,7 @@ export class ObexManager extends GObject.Object {
                         param_types: [GObject.TYPE_STRING],
                     },
                     "transfer-failed": {
-                        param_types: [GObject.TYPE_STRING, GObject.TYPE_STRING],
+                        param_types: [GObject.TYPE_STRING],
                     },
                 },
             },
@@ -137,11 +137,7 @@ export class ObexManager extends GObject.Object {
                     this.emit("transfer-completed", transferPath);
                     this.activeTransfers.delete(transferPath);
                 } else if (status === "error") {
-                    this.emit(
-                        "transfer-failed",
-                        transferPath,
-                        "Transfer failed",
-                    );
+                    this.emit("transfer-failed", transferPath);
                     this.activeTransfers.delete(transferPath);
                 }
             }

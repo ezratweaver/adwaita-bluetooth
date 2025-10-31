@@ -245,16 +245,13 @@ export class DeviceDetailsModal extends Adw.Window {
                     }
                 }),
 
-                obexManager.connect(
-                    "transfer-failed",
-                    (_, path: string, error: string) => {
-                        if (path === transferPath) {
-                            progressDialog.showError(
-                                `Failed to send "${filename}": ${error}`,
-                            );
-                        }
-                    },
-                ),
+                obexManager.connect("transfer-failed", (_, path: string) => {
+                    if (path === transferPath) {
+                        progressDialog.showError(
+                            "Make sure that the remote device is switched on and that it accepts Bluetooth connections",
+                        );
+                    }
+                }),
             );
 
             try {
