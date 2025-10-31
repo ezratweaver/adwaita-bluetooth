@@ -67,6 +67,16 @@ export class DeviceDetailsModal extends Adw.Window {
             GObject.BindingFlags.SYNC_CREATE,
         );
 
+        // Show send files group only if device supports Object Push
+        if (this.device.uuids.has(BluetoothUUID.OBJECT_PUSH)) {
+            this.device.bind_property(
+                "connected",
+                this._send_files_group,
+                "visible",
+                GObject.BindingFlags.SYNC_CREATE,
+            );
+        }
+
         this.device.bind_property(
             "connecting",
             this._connection_switch,
@@ -99,14 +109,6 @@ export class DeviceDetailsModal extends Adw.Window {
             }
             return false;
         });
-
-        // Show send files group only if device supports Object Push
-        if (
-            this.device.uuids.has(BluetoothUUID.OBJECT_PUSH) &&
-            this.device.connected
-        ) {
-            this._send_files_group.set_visible(true);
-        }
 
         this._send_files_button.connect("activated", () => {
             this.showFilePicker();
