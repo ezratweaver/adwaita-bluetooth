@@ -178,80 +178,88 @@ export class DeviceDetailsModal extends Adw.Window {
 
         const filename = file.get_basename() ?? "unknown file";
 
-        // Show progress dialog
         const progressDialog = new FileTransferProgressDialog(
             filePath,
             this.device.alias,
         );
 
         let transferPath: string | null = null;
+        let signalIds: number[] = [];
 
-        const progressId = obexManager.connect(
-            "transfer-progress",
-            (_, path: string, transferred: number, total: number) => {
-                if (path === transferPath) {
-                    progressDialog.updateProgress(transferred, total);
-                }
-            },
-        );
+        const cleanupSignals = () => {
+            signalIds.forEach((id) => obexManager.disconnect(id));
+            signalIds = [];
+        };
 
-        const completedId = obexManager.connect(
-            "transfer-completed",
-            (_, path: string) => {
-                if (path === transferPath) {
-                    progressDialog.close();
-                    this.showDialog(
-                        "File sent successfully",
-                        `"${filename}" was sent to ${this.device.alias}.`,
-                    );
-                }
-            },
-        );
+        const attemptTransfer = async () => {
+            progressDialog.hideError();
 
-        const failedId = obexManager.connect(
-            "transfer-failed",
-            (_, path: string, error: string) => {
-                if (path === transferPath) {
-                    progressDialog.close();
-                    this.showDialog(
-                        "Transfer failed",
-                        `Failed to send "${filename}": ${error}`,
-                    );
+            if (transferPath) {
+                obexManager.cancelTransfer(transferPath);
+                transferPath = null;
+            }
+
+            cleanupSignals();
+
+            progressDialog.updateProgress(0, 1);
+
+            signalIds.push(
+                obexManager.connect(
+                    "transfer-progress",
+                    (_, path: string, transferred: number, total: number) => {
+                        if (path === transferPath) {
+                            progressDialog.updateProgress(transferred, total);
+                        }
+                    },
+                ),
+
+                obexManager.connect("transfer-completed", (_, path: string) => {
+                    if (path === transferPath) {
+                        progressDialog.close();
+                        this.showDialog(
+                            "File sent successfully",
+                            `"${filename}" was sent to ${this.device.alias}.`,
+                        );
+                        cleanupSignals();
+                    }
+                }),
+
+                obexManager.connect(
+                    "transfer-failed",
+                    (_, path: string, error: string) => {
+                        if (path === transferPath) {
+                            progressDialog.showError(
+                                `Failed to send "${filename}": ${error}`,
+                            );
+                        }
+                    },
+                ),
+            );
+
+            try {
+                transferPath = await obexManager.sendFile(
+                    this.device.address,
+                    filePath,
+                );
+                if (!transferPath) {
+                    progressDialog.showError("Could not start file transfer.");
                 }
-            },
-        );
+            } catch (error) {
+                progressDialog.showError(`Failed to send file: ${error}`);
+            }
+        };
 
         progressDialog.connect("cancelled", () => {
             if (transferPath) {
                 obexManager.cancelTransfer(transferPath);
             }
-
-            obexManager.disconnect(progressId);
-            obexManager.disconnect(completedId);
-            obexManager.disconnect(failedId);
+            cleanupSignals();
         });
 
-        progressDialog.present(this);
+        progressDialog.connect("retry", attemptTransfer);
 
-        try {
-            transferPath = await obexManager.sendFile(
-                this.device.address,
-                filePath,
-            );
-            if (!transferPath) {
-                progressDialog.close();
-                this.showDialog(
-                    "Transfer failed",
-                    "Could not start file transfer.",
-                );
-            }
-        } catch (error) {
-            progressDialog.close();
-            this.showDialog(
-                "Transfer failed",
-                `Failed to send file: ${error}`,
-            );
-        }
+        progressDialog.present(this);
+        await attemptTransfer();
     }
 
     private showDialog(heading: string, body: string): void {

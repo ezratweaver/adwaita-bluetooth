@@ -23,6 +23,12 @@ template $Gjs_FileTransferProgressDialog: Adw.Dialog {
         label: "Cancel";
       }
 
+      [end]
+      Button retry_button {
+        label: "Retry";
+        visible: false;
+      }
+
       css-classes: [
         "file-transfer-header",
       ];
@@ -92,6 +98,31 @@ template $Gjs_FileTransferProgressDialog: Adw.Dialog {
 
       ProgressBar progress_bar {
         hexpand: true;
+      }
+
+      Box error_box {
+        orientation: horizontal;
+        spacing: 2;
+        visible: false;
+        margin-top: 4;
+
+        Image error_icon {
+          icon-name: "dialog-error-symbolic";
+
+          css-classes: [
+            "error",
+          ];
+        }
+
+        Label error_label {
+          halign: start;
+          hexpand: true;
+          wrap: true;
+
+          css-classes: [
+            "error",
+          ];
+        }
       }
     };
   };
