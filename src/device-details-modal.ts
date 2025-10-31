@@ -263,9 +263,7 @@ export class DeviceDetailsModal extends Adw.Window {
                 obexManager.connect("transfer-failed", (_, path: string) => {
                     if (path === transferPath) {
                         const message =
-                            files.length === 1
-                                ? "Make sure that the remote device is switched on and that it accepts Bluetooth connections"
-                                : `Failed to send "${currentFilename}". Click retry to continue with remaining files.`;
+                            "Make sure that the remote device is switched on and that it accepts Bluetooth connections";
                         progressDialog.showError(message);
                     }
                 }),
